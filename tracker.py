@@ -23,7 +23,7 @@ TRADES_CSV = BASE / "trades.csv"
 CONFIG_JSON = BASE / "config.json"
 
 # App version (bump this when you release an update)
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 
 # ─── Underground Cyberpunk Theme ───────────────────────────────────────────
 CUSTOM_THEME = Theme({
