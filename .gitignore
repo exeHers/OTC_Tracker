@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+.venv/
+*.egg-info/
+.eggs/
+
+# User data (keep your trades and settings local)
+config.json
+trades.csv
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Android build (android/ has its own .gitignore; these are for root)
+*.apk
+*.aab
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Optional: uncomment to keep sync file out of repo
+# otc_tracker_sync.json

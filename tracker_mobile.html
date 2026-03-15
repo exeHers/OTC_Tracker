@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <title>OTC Trading Tracker</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --panel: #141414;
+      --dim: #888;
+      --white: #e0e0e0;
+      --accent: #fff;
+      --profit: #00ffbf;
+      --loss: #dc143c;
+      --border: #333;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 12px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
+    h1 { font-size: 1.25rem; margin: 0.5rem 0 0; color: var(--accent); }
+    .sub { font-size: 0.8rem; color: var(--dim); margin: 0.25rem 0 0.75rem 0; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .panel-title { font-size: 0.75rem; color: var(--dim); margin-bottom: 4px; }
+    .panel-hint { font-size: 0.7rem; color: var(--dim); margin-top: 2px; }
+    .stat { font-size: 1rem; margin: 4px 0; }
+    .profit { color: var(--profit); }
+    .loss { color: var(--loss); }
+    input, select, button {
+      font-size: 16px; /* avoids zoom on iOS */
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--white);
+      width: 100%;
+      margin-top: 4px;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+    button.primary { background: var(--profit); color: var(--bg); border-color: var(--profit); }
+    button.secondary { background: transparent; color: var(--dim); }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .row label { flex: 0 0 auto; color: var(--dim); font-size: 0.9rem; }
+    .row input { flex: 1 1 100px; }
+    .w-l { display: flex; gap: 12px; margin: 8px 0; }
+    .w-l label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .w-l input[type=radio] { width: auto; margin: 0; }
+    .progress-wrap { margin: 8px 0; }
+    .progress-bar {
+      height: 10px;
+      background: var(--panel);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--profit);
+      border-radius: 5px;
+      transition: width 0.2s;
+    }
+    .progress-fill.done { background: #00ff88; }
+    .feedback { margin-top: 8px; font-weight: 500; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+    .tabs button {
+      flex: 1;
+      margin: 0;
+      padding: 10px;
+      font-size: 0.9rem;
+      background: var(--panel);
+      color: var(--dim);
+    }
+    .tabs button.active { color: var(--accent); border-color: var(--profit); }
+    .tab { display: none; }
+    .tab.show { display: block; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--dim); font-weight: 500; }
+    .history-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .export-btn { margin-top: 8px; font-size: 0.9rem; }
+    .btn-danger { color: var(--loss); }
+    .btn-sm { padding: 6px 10px; font-size: 0.8rem; margin: 0; width: auto; min-height: 36px; }
+    .install-panel { margin-bottom: 10px; padding: 10px; border: 1px dashed var(--border); border-radius: 6px; font-size: 0.85rem; color: var(--dim); }
+    .install-panel button { margin-top: 6px; }
+    .currency-search { margin: 8px 0; }
+    .currency-list-wrap { max-height: 200px; overflow-y: auto; -webkit-overflow-scrolling: touch; margin-top: 4px; border: 1px solid var(--border); border-radius: 4px; }
+    .currency-item { display: block; width: 100%; padding: 12px 14px; text-align: left; background: var(--panel); color: var(--white); border: none; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; min-height: 44px; box-sizing: border-box; }
+    .currency-item:last-child { border-bottom: none; }
+    .currency-item:hover, .currency-item:focus { background: var(--border); }
+    .header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .theme-btn { width: auto; margin: 0; padding: 6px 12px; font-size: 0.85rem; }
+    /* Light theme */
+    body.theme-light { --bg: #f0f0f0; --panel: #fff; --dim: #666; --white: #1a1a1a; --accent: #1a1a1a; --profit: #00875a; --loss: #c53030; --border: #ccc; }
+    body.theme-light .progress-fill.done { background: #00a868; }
+  </style>
+</head>
+<body>
+  <div class="header-row">
+    <div>
+      <h1>OTC 5-SEC TRACKER</h1>
+      <p class="sub" id="dataHintLine"><span id="dataHint">Saved on this device</span></p>
+    </div>
+    <button type="button" id="themeBtn" class="theme-btn secondary">Light</button>
+  </div>
+
+  <div class="tabs">
+    <button type="button" id="tabDash" class="active">Dashboard</button>
+    <button type="button" id="tabHistory">History</button>
+    <button type="button" id="tabExtras">Extras</button>
+  </div>
+
+  <div id="dashTab" class="tab show">
+    <div class="panel">
+      <div class="panel-title">SESSION DASHBOARD</div>
+      <div class="panel-hint">Today's P&L, win rate, trades. Mindset from your run.</div>
+      <div class="stat" id="mali">Session Mali: —</div>
+      <div class="stat" id="winrate">Win Rate: —%</div>
+      <div class="stat" id="trades">Total Trades (Today): 0</div>
+      <div class="stat">Mindset: <span id="mindset">READY</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">DAILY GOAL</div>
+      <div class="panel-hint">Set target. Bar fills as session profit. Currency in Extras.</div>
+      <div class="row">
+        <label id="goalCurrencyLabel">Target (ZAR)</label>
+        <input type="number" id="goalInput" min="0" step="1" placeholder="0">
+        <button type="button" id="setGoalBtn" class="secondary" style="width:auto">Set</button>
+      </div>
+      <div class="progress-wrap">
+        <div id="goalLabel" class="panel-hint">Set a daily goal.</div>
+        <div class="progress-bar"><div id="goalBar" class="progress-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">LOG TRADE</div>
+      <div class="panel-hint">Amount, asset, Win/Loss. Saves on this device. Currency in Extras.</div>
+      <label id="amountCurrencyLabel">Amount (ZAR)</label>
+      <input type="number" id="amountInput" min="0" step="0.01" placeholder="0">
+      <label>Asset</label>
+      <input type="text" id="assetInput" placeholder="OTC">
+      <label>Result</label>
+      <div class="w-l">
+        <label><input type="radio" name="result" value="W" checked> Win</label>
+        <label><input type="radio" name="result" value="L"> Loss</label>
+      </div>
+      <button type="button" id="logBtn" class="primary">Log trade</button>
+      <div id="feedback" class="feedback"></div>
+    </div>
+  </div>
+
+  <div id="historyTab" class="tab">
+    <div class="panel">
+      <div class="panel-title">TRADE HISTORY</div>
+      <div class="panel-hint">All trades on this device. Export CSV to merge with desktop.</div>
+      <div class="row">
+        <label><input type="radio" name="filter" value="all" checked> All</label>
+        <label><input type="radio" name="filter" value="today"> Today</label>
+      </div>
+      <div class="history-wrap">
+        <table id="historyTable">
+          <thead><tr><th>Date</th><th>Time</th><th>Amount</th><th>Asset</th><th>W/L</th><th></th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+      <button type="button" id="exportBtn" class="export-btn secondary">Export CSV</button>
+      <button type="button" id="clearAllBtn" class="export-btn btn-danger secondary">Clear all data (start fresh)</button>
+    </div>
+  </div>
+
+  <div id="extrasTab" class="tab">
+    <div class="panel">
+      <span class="panel-title">Check for update</span>
+      <p class="panel-hint">Set the URL to a version.json (e.g. GitHub raw or your server). Then tap Check.</p>
+      <p class="panel-hint">Version: <strong id="appVersionLabel">1.0.0</strong></p>
+      <input type="text" id="updateCheckUrlInput" placeholder="https://.../version.json" class="currency-search">
+      <div class="row" style="flex-wrap:wrap; gap:8px; margin-top:8px">
+        <button type="button" id="saveUpdateUrlBtn" class="theme-btn secondary">Save URL</button>
+        <button type="button" id="checkUpdateBtn" class="theme-btn primary">Check for update</button>
+      </div>
+      <p class="panel-hint" id="updateCheckResult" style="margin-top:8px;display:none"></p>
+      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
+      <span class="panel-title">Cloud sync (Drive / OneDrive)</span>
+      <details class="panel-hint" style="margin:6px 0 8px 0;">
+        <summary style="cursor:pointer; color:var(--accent);">How to sync</summary>
+        <p style="margin:8px 0 0 0;">1. Export sync file → save the file to Google Drive or OneDrive.<br>2. On PC: open desktop app, Extras → set sync file path to that file in your Drive/OneDrive folder → Download from sync file.<br>3. To send data to phone: on PC click Upload to sync file; on phone tap Import sync file and choose the file from Drive.</p>
+      </details>
+      <div class="row" style="flex-wrap:wrap; gap:8px; margin-top:8px">
+        <button type="button" id="exportSyncFileBtn" class="theme-btn secondary">Export sync file</button>
+        <button type="button" id="importSyncFileBtn" class="theme-btn primary">Import sync file</button>
+        <input type="file" id="importSyncFileInput" accept=".json,application/json" style="position:absolute;left:-9999px">
+      </div>
+      <p class="panel-hint" id="syncResultHint" style="margin-top:8px;display:none"></p>
+      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
+      <span class="panel-title">Currency</span>
+      <p class="panel-hint">Search and select currency for amounts and goals.</p>
+      <p class="panel-hint">Current: <strong id="currentCurrencyLabel">ZAR</strong></p>
+      <input type="text" id="currencySearch" placeholder="Search currencies..." class="currency-search">
+      <div id="currencyListWrap" class="currency-list-wrap"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_TRADES = 'otc_trades';
+    const STORAGE_GOAL = 'otc_daily_goal';
+    const STORAGE_THEME = 'otc_theme';
+    const STORAGE_CURRENCY = 'otc_currency';
+    const STORAGE_UPDATE_CHECK_URL = 'otc_update_check_url';
+    const APP_VERSION = '1.0.0';
+
+    var CURRENCIES = [["AED","United Arab Emirates Dirham"],["AFN","Afghan Afghani"],["ALL","Albanian Lek"],["AMD","Armenian Dram"],["ANG","Netherlands Antillean Guilder"],["AOA","Angolan Kwanza"],["ARS","Argentine Peso"],["AUD","Australian Dollar"],["AWG","Aruban Florin"],["AZN","Azerbaijani Manat"],["BAM","Bosnia-Herzegovina Convertible Mark"],["BBD","Barbadian Dollar"],["BDT","Bangladeshi Taka"],["BGN","Bulgarian Lev"],["BHD","Bahraini Dinar"],["BIF","Burundian Franc"],["BMD","Bermudan Dollar"],["BND","Brunei Dollar"],["BOB","Bolivian Boliviano"],["BRL","Brazilian Real"],["BSD","Bahamian Dollar"],["BTN","Bhutanese Ngultrum"],["BWP","Botswanan Pula"],["BYN","Belarusian Ruble"],["BZD","Belize Dollar"],["CAD","Canadian Dollar"],["CDF","Congolese Franc"],["CHF","Swiss Franc"],["CLP","Chilean Peso"],["CNY","Chinese Yuan"],["COP","Colombian Peso"],["CRC","Costa Rican Colón"],["CUP","Cuban Peso"],["CVE","Cape Verdean Escudo"],["CZK","Czech Koruna"],["DJF","Djiboutian Franc"],["DKK","Danish Krone"],["DOP","Dominican Peso"],["DZD","Algerian Dinar"],["EGP","Egyptian Pound"],["ERN","Eritrean Nakfa"],["ETB","Ethiopian Birr"],["EUR","Euro"],["FJD","Fijian Dollar"],["FKP","Falkland Islands Pound"],["GBP","British Pound Sterling"],["GEL","Georgian Lari"],["GHS","Ghanaian Cedi"],["GIP","Gibraltar Pound"],["GMD","Gambian Dalasi"],["GNF","Guinean Franc"],["GTQ","Guatemalan Quetzal"],["GYD","Guyanaese Dollar"],["HKD","Hong Kong Dollar"],["HNL","Honduran Lempira"],["HRK","Croatian Kuna"],["HTG","Haitian Gourde"],["HUF","Hungarian Forint"],["IDR","Indonesian Rupiah"],["ILS","Israeli New Shekel"],["INR","Indian Rupee"],["IQD","Iraqi Dinar"],["IRR","Iranian Rial"],["ISK","Icelandic Króna"],["JMD","Jamaican Dollar"],["JOD","Jordanian Dinar"],["JPY","Japanese Yen"],["KES","Kenyan Shilling"],["KGS","Kyrgyzstani Som"],["KHR","Cambodian Riel"],["KMF","Comorian Franc"],["KPW","North Korean Won"],["KRW","South Korean Won"],["KWD","Kuwaiti Dinar"],["KYD","Cayman Islands Dollar"],["KZT","Kazakhstani Tenge"],["LAK","Laotian Kip"],["LBP","Lebanese Pound"],["LKR","Sri Lankan Rupee"],["LRD","Liberian Dollar"],["LSL","Lesotho Loti"],["LYD","Libyan Dinar"],["MAD","Moroccan Dirham"],["MDL","Moldovan Leu"],["MGA","Malagasy Ariary"],["MKD","Macedonian Denar"],["MMK","Myanmar Kyat"],["MNT","Mongolian Tugrik"],["MOP","Macanese Pataca"],["MRU","Mauritanian Ouguiya"],["MUR","Mauritian Rupee"],["MVR","Maldivian Rufiyaa"],["MWK","Malawian Kwacha"],["MXN","Mexican Peso"],["MYR","Malaysian Ringgit"],["MZN","Mozambican Metical"],["NAD","Namibian Dollar"],["NGN","Nigerian Naira"],["NIO","Nicaraguan Córdoba"],["NOK","Norwegian Krone"],["NPR","Nepalese Rupee"],["NZD","New Zealand Dollar"],["OMR","Omani Rial"],["PAB","Panamanian Balboa"],["PEN","Peruvian Sol"],["PGK","Papua New Guinean Kina"],["PHP","Philippine Peso"],["PKR","Pakistani Rupee"],["PLN","Polish Złoty"],["PYG","Paraguayan Guaraní"],["QAR","Qatari Rial"],["RON","Romanian Leu"],["RSD","Serbian Dinar"],["RUB","Russian Ruble"],["RWF","Rwandan Franc"],["SAR","Saudi Riyal"],["SBD","Solomon Islands Dollar"],["SCR","Seychellois Rupee"],["SDG","Sudanese Pound"],["SEK","Swedish Krona"],["SGD","Singapore Dollar"],["SHP","Saint Helena Pound"],["SLL","Sierra Leonean Leone"],["SOS","Somali Shilling"],["SRD","Surinamese Dollar"],["SSP","South Sudanese Pound"],["STN","São Tomé and Príncipe Dobra"],["SYP","Syrian Pound"],["SZL","Swazi Lilangeni"],["THB","Thai Baht"],["TJS","Tajikistani Somoni"],["TMT","Turkmenistani Manat"],["TND","Tunisian Dinar"],["TOP","Tongan Paʻanga"],["TRY","Turkish Lira"],["TTD","Trinidad and Tobago Dollar"],["TWD","New Taiwan Dollar"],["TZS","Tanzanian Shilling"],["UAH","Ukrainian Hryvnia"],["UGX","Ugandan Shilling"],["USD","United States Dollar"],["UYU","Uruguayan Peso"],["UZS","Uzbekistan Som"],["VES","Venezuelan Bolívar"],["VND","Vietnamese Dōng"],["VUV","Vanuatu Vatu"],["WST","Samoan Tala"],["XAF","Central African CFA Franc"],["XCD","East Caribbean Dollar"],["XOF","West African CFA Franc"],["XPF","CFP Franc"],["YER","Yemeni Rial"],["ZAR","South African Rand"],["ZMW","Zambian Kwacha"],["ZWL","Zimbabwean Dollar"]];
+    var CURRENCY_SYMBOLS = {"AED":"د.إ","AFN":"؋","ALL":"L","AMD":"֏","ANG":"ƒ","AOA":"Kz","ARS":"$","AUD":"A$","AWG":"ƒ","AZN":"₼","BAM":"KM","BBD":"$","BDT":"৳","BGN":"лв","BHD":".د.ب","BIF":"FBu","BMD":"$","BND":"$","BOB":"Bs","BRL":"R$","BSD":"$","BTN":"Nu.","BWP":"P","BYN":"Br","BZD":"BZ$","CAD":"C$","CDF":"FC","CHF":"CHF","CLP":"$","CNY":"¥","COP":"$","CRC":"₡","CUP":"$","CVE":"$","CZK":"Kč","DJF":"Fdj","DKK":"kr","DOP":"RD$","DZD":"د.ج","EGP":"E£","ERN":"Nfk","ETB":"Br","EUR":"€","FJD":"FJ$","FKP":"£","GBP":"£","GEL":"₾","GHS":"₵","GIP":"£","GMD":"D","GNF":"FG","GTQ":"Q","GYD":"G$","HKD":"HK$","HNL":"L","HRK":"kn","HTG":"G","HUF":"Ft","IDR":"Rp","ILS":"₪","INR":"₹","IQD":"ع.د","IRR":"﷼","ISK":"kr","JMD":"J$","JOD":"د.ا","JPY":"¥","KES":"KSh","KGS":"с","KHR":"៛","KMF":"CF","KPW":"₩","KRW":"₩","KWD":"د.ك","KYD":"CI$","KZT":"₸","LAK":"₭","LBP":"ل.ل","LKR":"Rs","LRD":"L$","LSL":"L","LYD":"ل.د","MAD":"د.م.","MDL":"L","MGA":"Ar","MKD":"ден","MMK":"K","MNT":"₮","MOP":"MOP$","MRU":"UM","MUR":"₨","MVR":"Rf","MWK":"MK","MXN":"Mex$","MYR":"RM","MZN":"MT","NAD":"N$","NGN":"₦","NIO":"C$","NOK":"kr","NPR":"₨","NZD":"NZ$","OMR":"ر.ع.","PAB":"B/.","PEN":"S/","PGK":"K","PHP":"₱","PKR":"₨","PLN":"zł","PYG":"₲","QAR":"ر.ق","RON":"lei","RSD":"дин.","RUB":"₽","RWF":"FRw","SAR":"ر.س","SBD":"SI$","SCR":"₨","SDG":"ج.س.","SEK":"kr","SGD":"S$","SHP":"£","SLL":"Le","SOS":"Sh","SRD":"SRD","SSP":"£","STN":"Db","SYP":"£","SZL":"E","THB":"฿","TJS":"SM","TMT":"m","TND":"د.ت","TOP":"T$","TRY":"₺","TTD":"TT$","TWD":"NT$","TZS":"TSh","UAH":"₴","UGX":"USh","USD":"$","UYU":"$U","UZS":"so'm","VES":"Bs.S","VND":"₫","VUV":"VT","WST":"WS$","XAF":"FCFA","XCD":"EC$","XOF":"CFA","XPF":"₣","YER":"﷼","ZAR":"R","ZMW":"ZK","ZWL":"Z$"};
+
+    function getCurrency() { return localStorage.getItem(STORAGE_CURRENCY) || 'ZAR'; }
+    function setCurrency(code) { localStorage.setItem(STORAGE_CURRENCY, code); }
+    function getUpdateCheckUrl() { return (localStorage.getItem(STORAGE_UPDATE_CHECK_URL) || '').trim(); }
+    function setUpdateCheckUrl(url) { localStorage.setItem(STORAGE_UPDATE_CHECK_URL, (url || '').trim()); }
+    function versionNewer(remote, local) {
+      function parse(v) {
+        var parts = [];
+        (v || '0').trim().split('.').forEach(function(x) {
+          parts.push(parseInt(x, 10) || 0);
+        });
+        return parts;
+      }
+      var r = parse(remote), l = parse(local);
+      while (r.length < l.length) r.push(0);
+      while (l.length < r.length) l.push(0);
+      for (var i = 0; i < r.length; i++) {
+        if (r[i] > l[i]) return true;
+        if (r[i] < l[i]) return false;
+      }
+      return false;
+    }
+    function formatAmount(amount, code) {
+      var sym = CURRENCY_SYMBOLS[code] || code;
+      return sym === code ? amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ' + code : sym + ' ' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function getTheme() { return localStorage.getItem(STORAGE_THEME) || 'dark'; }
+    function setThemeStore(v) { localStorage.setItem(STORAGE_THEME, v); }
+    function applyTheme() {
+      var theme = getTheme();
+      document.body.classList.toggle('theme-light', theme === 'light');
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'light' ? '#f0f0f0' : '#0a0a0a');
+      document.getElementById('themeBtn').textContent = theme === 'dark' ? 'Light' : 'Dark';
+    }
+
+    function getTrades() {
+      try {
+        const raw = localStorage.getItem(STORAGE_TRADES);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) { return []; }
+    }
+
+    function saveTrades(trades) {
+      localStorage.setItem(STORAGE_TRADES, JSON.stringify(trades));
+    }
+
+    function getGoal() {
+      const g = localStorage.getItem(STORAGE_GOAL);
+      return g ? parseFloat(g) : 0;
+    }
+
+    function setGoal(v) {
+      localStorage.setItem(STORAGE_GOAL, String(Math.max(0, v)));
+    }
+
+    function todayStr() {
+      const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function timeStr() {
+      const d = new Date();
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
+    }
+
+    function sessionStats(trades) {
+      const today = todayStr();
+      const session = trades.filter(t => t.date === today);
+      const total = session.length;
+      const wins = session.filter(t => t.result === 'W').length;
+      let mali = 0;
+      session.forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        mali += t.result === 'W' ? amt : -amt;
+      });
+      const winRate = total ? (wins / total * 100) : 0;
+      return { session_mali: mali, win_rate: winRate, total_trades: total, wins, losses: total - wins };
+    }
+
+    function mindset(stats, goal) {
+      const { session_mali: mali, total_trades: total, win_rate: winRate } = stats;
+      if (total === 0) return 'READY';
+      if (goal > 0 && mali >= goal) return 'LOCKED IN';
+      if (stats.losses >= 3 && winRate < 40) return 'STAY COLD';
+      if (winRate >= 60 && mali > 0) return 'DISCIPLINED';
+      if (mali < 0) return 'RESET MODE';
+      return 'GRINDING';
+    }
+
+    function feedback(isWin) {
+      return isWin ? 'Nxa, keep grinding.' : "Don't be a chop, reset.";
+    }
+
+    function updateCurrencyLabels() {
+      var code = getCurrency();
+      document.getElementById('currentCurrencyLabel').textContent = code;
+      document.getElementById('goalCurrencyLabel').textContent = 'Target (' + code + ')';
+      document.getElementById('amountCurrencyLabel').textContent = 'Amount (' + code + ')';
+    }
+
+    function renderDashboard() {
+      const trades = getTrades();
+      const goal = getGoal();
+      const stats = sessionStats(trades);
+      const curr = getCurrency();
+      const m = stats.session_mali;
+      const maliEl = document.getElementById('mali');
+      maliEl.textContent = 'Session Mali: ' + (m >= 0 ? '+ ' : '- ') + formatAmount(Math.abs(m), curr);
+      maliEl.className = 'stat ' + (m >= 0 ? 'profit' : 'loss');
+      document.getElementById('winrate').textContent = 'Win Rate: ' + stats.win_rate.toFixed(1) + '%';
+      document.getElementById('trades').textContent = 'Total Trades (Today): ' + stats.total_trades;
+      const mind = mindset(stats, goal);
+      const mindEl = document.getElementById('mindset');
+      mindEl.textContent = mind;
+      mindEl.className = (mind === 'LOCKED IN' || mind === 'DISCIPLINED' || mind === 'GRINDING' || mind === 'READY') ? 'profit' : (mind === 'RESET MODE' || mind === 'STAY COLD') ? 'loss' : '';
+
+      document.getElementById('goalInput').value = goal > 0 ? goal : '';
+      if (goal > 0) {
+        const pct = Math.min(100, Math.max(0, (m / goal) * 100));
+        document.getElementById('goalLabel').textContent = 'Daily goal: ' + formatAmount(m, curr) + ' / ' + formatAmount(goal, curr) + ' (' + pct.toFixed(0) + '%)';
+        const bar = document.getElementById('goalBar');
+        bar.style.width = pct + '%';
+        bar.classList.toggle('done', pct >= 100);
+      } else {
+        document.getElementById('goalLabel').textContent = 'Set a daily goal.';
+        document.getElementById('goalBar').style.width = '0%';
+      }
+      updateCurrencyLabels();
+    }
+
+    function renderCurrencyList() {
+      var q = (document.getElementById('currencySearch').value || '').trim().toUpperCase();
+      var list = CURRENCIES.filter(function(p) { return !q || p[0].indexOf(q) >= 0 || p[1].toUpperCase().indexOf(q) >= 0; });
+      var wrap = document.getElementById('currencyListWrap');
+      wrap.innerHTML = '';
+      list.forEach(function(p) {
+        var code = p[0], name = p[1];
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'currency-item';
+        btn.textContent = code + ' – ' + name;
+        btn.onclick = function() { setCurrency(code); document.getElementById('currentCurrencyLabel').textContent = code; updateCurrencyLabels(); renderDashboard(); };
+        wrap.appendChild(btn);
+      });
+    }
+
+    function removeTrade(trade) {
+      const trades = getTrades().filter(function(t) {
+        return t.date !== trade.date || t.time !== trade.time || t.amount !== trade.amount || t.asset !== trade.asset || t.result !== trade.result;
+      });
+      saveTrades(trades);
+      renderHistory();
+      renderDashboard();
+    }
+
+    function clearAllData() {
+      if (!confirm('Clear ALL data (trades, goal, theme, currency, update URL)? This cannot be undone.')) return;
+      localStorage.removeItem(STORAGE_TRADES);
+      localStorage.removeItem(STORAGE_GOAL);
+      localStorage.removeItem(STORAGE_THEME);
+      localStorage.removeItem(STORAGE_CURRENCY);
+      localStorage.removeItem(STORAGE_UPDATE_CHECK_URL);
+      applyTheme();
+      updateCurrencyLabels();
+      document.getElementById('currentCurrencyLabel').textContent = 'ZAR';
+      renderDashboard();
+      renderHistory();
+      if (document.getElementById('historyTab').classList.contains('show')) renderHistory();
+    }
+
+    function renderHistory() {
+      const trades = getTrades();
+      const filter = document.querySelector('input[name="filter"]:checked').value;
+      const today = todayStr();
+      const list = filter === 'today' ? trades.filter(t => t.date === today) : trades;
+      const tbody = document.getElementById('historyBody');
+      tbody.innerHTML = '';
+      list.slice().reverse().forEach(t => {
+        const tr = document.createElement('tr');
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'btn-sm secondary btn-danger';
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = function() { if (confirm('Remove this trade?')) removeTrade(t); };
+        tr.innerHTML = '<td>' + t.date + '</td><td>' + t.time + '</td><td>' + t.amount + '</td><td>' + t.asset + '</td><td class="' + (t.result === 'W' ? 'profit' : 'loss') + '">' + t.result + '</td><td></td>';
+        tr.querySelector('td:last-child').appendChild(delBtn);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addTrade(amount, asset, result) {
+      const trades = getTrades();
+      trades.push({ date: todayStr(), time: timeStr(), amount: String(amount), asset: asset || 'OTC', result: result.toUpperCase().slice(0, 1) });
+      saveTrades(trades);
+    }
+
+    function exportCSV() {
+      const trades = getTrades();
+      const headers = 'date,time,amount,asset,result';
+      const rows = trades.map(t => [t.date, t.time, t.amount, t.asset, t.result].join(','));
+      const csv = [headers, ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'trades_' + todayStr() + '.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function showTab(tabId) {
+      document.getElementById('dashTab').classList.toggle('show', tabId === 'dashTab');
+      document.getElementById('historyTab').classList.toggle('show', tabId === 'historyTab');
+      document.getElementById('extrasTab').classList.toggle('show', tabId === 'extrasTab');
+      document.getElementById('tabDash').classList.toggle('active', tabId === 'dashTab');
+      document.getElementById('tabHistory').classList.toggle('active', tabId === 'historyTab');
+      document.getElementById('tabExtras').classList.toggle('active', tabId === 'extrasTab');
+      if (tabId === 'historyTab') renderHistory();
+      if (tabId === 'extrasTab') renderCurrencyList();
+    }
+    document.getElementById('tabDash').onclick = function() { showTab('dashTab'); };
+    document.getElementById('tabHistory').onclick = function() { showTab('historyTab'); };
+    document.getElementById('tabExtras').onclick = function() { showTab('extrasTab'); };
+
+    document.getElementById('currencySearch').addEventListener('input', renderCurrencyList);
+
+    document.querySelectorAll('input[name="filter"]').forEach(el => el.addEventListener('change', renderHistory));
+
+    document.getElementById('setGoalBtn').onclick = function() {
+      const v = parseFloat(document.getElementById('goalInput').value) || 0;
+      setGoal(v);
+      renderDashboard();
+    };
+
+    document.getElementById('logBtn').onclick = function() {
+      const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+      const asset = document.getElementById('assetInput').value.trim() || 'OTC';
+      const result = document.querySelector('input[name="result"]:checked').value;
+      addTrade(amount, asset, result);
+      const fb = document.getElementById('feedback');
+      fb.textContent = feedback(result === 'W');
+      fb.className = 'feedback ' + (result === 'W' ? 'profit' : 'loss');
+      document.getElementById('amountInput').value = '';
+      renderDashboard();
+    };
+
+    document.getElementById('exportBtn').onclick = exportCSV;
+
+    document.getElementById('themeBtn').onclick = function() {
+      var next = getTheme() === 'dark' ? 'light' : 'dark';
+      setThemeStore(next);
+      applyTheme();
+    };
+
+    document.getElementById('clearAllBtn').onclick = clearAllData;
+
+    document.getElementById('appVersionLabel').textContent = APP_VERSION;
+    document.getElementById('updateCheckUrlInput').value = getUpdateCheckUrl();
+
+    document.getElementById('saveUpdateUrlBtn').onclick = function() {
+      setUpdateCheckUrl(document.getElementById('updateCheckUrlInput').value);
+      var el = document.getElementById('updateCheckResult');
+      el.textContent = 'URL saved.';
+      el.style.display = 'block';
+      el.className = 'panel-hint profit';
+    };
+
+    function exportSyncFile() {
+      var data = {
+        trades: getTrades(),
+        daily_goal: getGoal(),
+        theme: getTheme(),
+        currency: getCurrency(),
+        updated_at: new Date().toISOString().replace(/\.\d{3}Z$/, '.000Z')
+      };
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'otc_tracker_sync.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      var el = document.getElementById('syncResultHint');
+      el.textContent = 'Sync file downloaded. Save it to Google Drive or OneDrive, then on PC use Download from sync file.';
+      el.style.display = 'block';
+      el.className = 'panel-hint profit';
+    }
+    function importSyncFile(file) {
+      var reader = new FileReader();
+      reader.onload = function() {
+        try {
+          var data = JSON.parse(reader.result);
+          var trades = data.trades || [];
+          saveTrades(trades);
+          if (data.daily_goal != null) setGoal(parseFloat(data.daily_goal) || 0);
+          if (data.theme) setThemeStore(data.theme);
+          if (data.currency) setCurrency(data.currency);
+          applyTheme();
+          updateCurrencyLabels();
+          renderDashboard();
+          renderHistory();
+          var el = document.getElementById('syncResultHint');
+          el.textContent = 'Data imported. Last updated: ' + (data.updated_at || 'unknown');
+          el.style.display = 'block';
+          el.className = 'panel-hint profit';
+        } catch (e) {
+          document.getElementById('syncResultHint').textContent = 'Invalid sync file: ' + (e.message || e);
+          document.getElementById('syncResultHint').className = 'panel-hint loss';
+          document.getElementById('syncResultHint').style.display = 'block';
+        }
+      };
+      reader.readAsText(file);
+    }
+    document.getElementById('exportSyncFileBtn').onclick = exportSyncFile;
+    document.getElementById('importSyncFileBtn').onclick = function() { document.getElementById('importSyncFileInput').click(); };
+    document.getElementById('importSyncFileInput').onchange = function() {
+      var file = this.files && this.files[0];
+      if (file) importSyncFile(file);
+      this.value = '';
+    };
+
+    document.getElementById('checkUpdateBtn').onclick = function() {
+      var url = (document.getElementById('updateCheckUrlInput').value || getUpdateCheckUrl()).trim();
+      var resultEl = document.getElementById('updateCheckResult');
+      resultEl.style.display = 'block';
+      if (!url) {
+        resultEl.textContent = 'Enter the URL to your version.json, then tap Check for update.';
+        resultEl.className = 'panel-hint';
+        return;
+      }
+      resultEl.textContent = 'Checking...';
+      resultEl.className = 'panel-hint';
+      fetch(url, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+      }).then(function(data) {
+        var remoteVersion = (data.version || '').trim();
+        var downloadUrl = (data.url || '').trim();
+        var notes = (data.notes || '').trim();
+        if (!remoteVersion) {
+          resultEl.textContent = 'version.json did not contain a "version" field.';
+          resultEl.className = 'panel-hint loss';
+          return;
+        }
+        if (versionNewer(remoteVersion, APP_VERSION)) {
+          resultEl.innerHTML = 'Update available: v' + remoteVersion + (notes ? '<br>' + notes : '') + (downloadUrl ? '<br><a href="' + downloadUrl + '" target="_blank" rel="noopener" style="color:var(--profit)">Open download</a>' : '');
+          resultEl.className = 'panel-hint profit';
+        } else {
+          resultEl.textContent = "You're on the latest version (v" + APP_VERSION + ").";
+          resultEl.className = 'panel-hint';
+        }
+      }).catch(function(err) {
+        resultEl.textContent = 'Could not check: ' + (err.message || String(err));
+        resultEl.className = 'panel-hint loss';
+      });
+    };
+
+    applyTheme();
+    document.getElementById('currentCurrencyLabel').textContent = getCurrency();
+    updateCurrencyLabels();
+    renderCurrencyList();
+    renderDashboard();
+  </script>
+</body>
+</html>

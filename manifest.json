@@ -1,0 +1,10 @@
+{
+  "name": "OTC Trading Tracker",
+  "short_name": "OTC Tracker",
+  "description": "5-second OTC trading log — Underground Cyberpunk",
+  "start_url": "tracker_mobile.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait-primary"
+}
