@@ -145,11 +145,14 @@ class BotEngine:
                         # Live result is unknown at execution time in this framework.
                         pnl = 0.0
                     self.risk.record_trade_result(pnl)
-                    if executed.paper and strat is not None and hasattr(strat, "note_paper_pnl"):
-                        try:
-                            strat.note_paper_pnl(trade.asset, pnl)
-                        except Exception:
-                            pass
+                    if executed.paper:
+                        with self._lock:
+                            strat = self._strategy
+                        if strat is not None and hasattr(strat, "note_paper_pnl"):
+                            try:
+                                strat.note_paper_pnl(trade.asset, pnl)
+                            except Exception:
+                                pass
                     with self._lock:
                         self._trades_executed_today.append(executed)
                         self._last_executed = executed
