@@ -22,8 +22,22 @@ BASE = Path(__file__).resolve().parent
 TRADES_CSV = BASE / "trades.csv"
 CONFIG_JSON = BASE / "config.json"
 
+# CSV columns (extended for browser helper accuracy; older files auto-migrate on load)
+TRADE_FIELDNAMES = [
+    "date",
+    "time",
+    "amount",
+    "asset",
+    "result",
+    "payout",
+    "direction",
+    "duration_sec",
+    "source",
+    "trade_id",
+]
+
 # App version (bump this when you release an update)
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 
 # ─── Underground Cyberpunk Theme ───────────────────────────────────────────
 CUSTOM_THEME = Theme({
@@ -42,12 +56,29 @@ BOX_HEAVY = box.HEAVY
 console = Console(theme=CUSTOM_THEME, force_terminal=True)
 
 
+def _migrate_trades_csv_if_needed():
+    """Upgrade legacy 5-column CSV to extended header without losing rows."""
+    if not TRADES_CSV.exists():
+        return
+    try:
+        with open(TRADES_CSV, "r", newline="", encoding="utf-8") as f:
+            first = f.readline()
+    except OSError:
+        return
+    if "trade_id" in first and first.count(",") >= 9:
+        return
+    rows = load_trades()
+    overwrite_trades(rows)
+
+
 def ensure_files():
     """Create CSV and config if missing."""
     if not TRADES_CSV.exists():
         with open(TRADES_CSV, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
-            w.writerow(["date", "time", "amount", "asset", "result"])
+            w.writerow(TRADE_FIELDNAMES)
+    else:
+        _migrate_trades_csv_if_needed()
     if not CONFIG_JSON.exists():
         with open(CONFIG_JSON, "w", encoding="utf-8") as f:
             json.dump({"daily_goal": 0}, f, indent=2)
@@ -62,6 +93,8 @@ def load_trades():
         r = csv.DictReader(f)
         for row in r:
             if row.get("date") and row.get("result"):
+                for k in TRADE_FIELDNAMES:
+                    row.setdefault(k, "")
                 rows.append(row)
     return rows
 
@@ -75,28 +108,65 @@ def append_trade(amount: float, asset: str, result: str):
         "amount": str(amount),
         "asset": asset.strip() or "OTC",
         "result": result.upper()[:1],
+        "payout": "",
+        "direction": "",
+        "duration_sec": "",
+        "source": "manual",
+        "trade_id": "",
     }
     with open(TRADES_CSV, "a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["date", "time", "amount", "asset", "result"])
+        w = csv.DictWriter(f, fieldnames=TRADE_FIELDNAMES)
         w.writerow(row)
     return row
 
 
+def append_trade_row(row: dict):
+    """Append one trade (manual, browser helper, or automation). Missing keys default to empty."""
+    out = {k: str(row.get(k, "") or "") for k in TRADE_FIELDNAMES}
+    if not out.get("source"):
+        out["source"] = "browser" if row.get("trade_id") or row.get("payout") not in (None, "") else "manual"
+    with open(TRADES_CSV, "a", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=TRADE_FIELDNAMES)
+        w.writerow(out)
+
+
 def overwrite_trades(trades: list):
-    """Replace entire trades CSV with the given list of trade dicts (date, time, amount, asset, result)."""
+    """Replace entire trades CSV with the given list of trade dicts."""
     with open(TRADES_CSV, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["date", "time", "amount", "asset", "result"])
+        w = csv.DictWriter(f, fieldnames=TRADE_FIELDNAMES)
         w.writeheader()
         for t in trades:
-            w.writerow({k: t.get(k, "") for k in ["date", "time", "amount", "asset", "result"]})
+            w.writerow({k: (t.get(k, "") or "") for k in TRADE_FIELDNAMES})
+
+
+def clear_trades_journal():
+    """Delete all trade rows from CSV. Keeps config.json (theme, currency, goals, sync URL, etc.). Resets browser collection state file."""
+    with open(TRADES_CSV, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=TRADE_FIELDNAMES)
+        w.writeheader()
+    try:
+        from trade_collection_state import reset_state
+
+        reset_state()
+    except Exception:
+        pass
 
 
 def clear_all_data():
-    """Clear all trades and reset config (daily_goal=0, theme=dark, currency=ZAR). Starts the app fresh."""
-    with open(TRADES_CSV, "w", newline="", encoding="utf-8") as f:
-        csv.writer(f).writerow(["date", "time", "amount", "asset", "result"])
+    """Full factory reset: trades + config (daily_goal=0, theme=dark, currency=ZAR). Prefer clear_trades_journal() from GUI wipe."""
+    clear_trades_journal()
     with open(CONFIG_JSON, "w", encoding="utf-8") as f:
         json.dump({"daily_goal": 0, "theme": "dark", "currency": "ZAR"}, f, indent=2)
+
+
+def delete_trades_for_date(date_str: str) -> int:
+    """Remove all trades where date == date_str. Returns count removed."""
+    trades = load_trades()
+    kept = [t for t in trades if (t.get("date") or "") != date_str]
+    n = len(trades) - len(kept)
+    if n:
+        overwrite_trades(kept)
+    return n
 
 
 def get_daily_goal():

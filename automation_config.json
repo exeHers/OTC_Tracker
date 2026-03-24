@@ -1,0 +1,51 @@
+{
+  "pocket_option": {
+    "ssid": "42[\"auth\",{\"session\":\"3pqcgiumd42n2lnvpndbcct3i7\",\"isDemo\":1,\"uid\":125555299,\"platform\":2,\"isFastHistory\":true,\"isOptimized\":true}]",
+    "is_demo": true
+  },
+  "tracking": {
+    "detection_method": "placeholder",
+    "polling_interval_sec": 5.0,
+    "auto_reconnect": true,
+    "session_timeout_sec": 3600.0,
+    "automatically_save_detected_trades": true,
+    "sync_with_trade_journal": true,
+    "duplicate_trade_protection": true,
+    "trade_detection_delay_sec": 0.0,
+    "max_detection_retries": 3,
+    "error_recovery_enabled": true
+  },
+  "bot": {
+    "paper_trading": false,
+    "max_trades_per_session": 50,
+    "max_trades_per_minute": 0,
+    "max_risk_per_trade": 0.0,
+    "max_daily_loss": 0.0,
+    "max_consecutive_losses": 0,
+    "stop_after_profit_target": 0.0,
+    "min_time_between_trades_sec": 0.0,
+    "execution_delay_sec": 0.0,
+    "randomized_delay": false,
+    "strategy_asset": "OTC",
+    "strategy_otc_symbols": [
+      "EURUSD_otc"
+    ],
+    "strategy_amount": 2.0,
+    "strategy_duration_sec": 30,
+    "strategy_interval_sec": 30.0,
+    "strategy_direction_mode": "alternate",
+    "strategy_jitter_sec": 0.0,
+    "paper_win_rate_min": 0.68,
+    "paper_win_rate_max": 0.8,
+    "paper_payout_ratio": 0.82,
+    "live_enabled": true,
+    "pocket_account_mode": "demo",
+    "broker": "relay_queue",
+    "broker_relay_url": "http://127.0.0.1:8787",
+    "broker_relay_user_key": "envyyy2006",
+    "broker_relay_token": "",
+    "broker_asset_symbol": "EURUSD_otc",
+    "fail_safe_stop_on_broker_error": true,
+    "bot_advanced_custom": false
+  }
+}

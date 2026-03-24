@@ -3,226 +3,1321 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="theme-color" content="#0a0a0a">
+  <meta name="theme-color" content="#07080d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
   <title>OTC Trading Tracker</title>
   <style>
     :root {
-      --bg: #0a0a0a;
-      --panel: #141414;
-      --dim: #888;
-      --white: #e0e0e0;
-      --accent: #fff;
-      --profit: #00ffbf;
-      --loss: #dc143c;
-      --border: #333;
+      --bg: #07080d;
+      --bg-soft: #0c0e16;
+      --panel: rgba(22, 25, 38, 0.94);
+      --panel-2: rgba(14, 16, 26, 0.92);
+      --text: #f4f6fc;
+      --text-dim: #8b93a8;
+      --border: rgba(255, 255, 255, 0.065);
+      --border-strong: rgba(255, 255, 255, 0.13);
+      --accent: #6366f1;
+      --accent-soft: rgba(99, 102, 241, 0.20);
+      --accent-glow: rgba(99, 102, 241, 0.35);
+      --profit: #34d399;
+      --profit-soft: rgba(52, 211, 153, 0.14);
+      --loss: #fb7185;
+      --loss-soft: rgba(251, 113, 133, 0.14);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+      --shadow-nav: 0 -8px 32px rgba(0, 0, 0, 0.35);
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --nav-h: 82px;
+      --nav-surface: rgba(10, 12, 20, 0.92);
+      --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
+
+    body.theme-light {
+      --bg: #eef1f7;
+      --bg-soft: #ffffff;
+      --panel: rgba(255, 255, 255, 0.97);
+      --panel-2: rgba(241, 244, 250, 0.95);
+      --text: #141824;
+      --text-dim: #5c6478;
+      --border: rgba(20, 24, 36, 0.08);
+      --border-strong: rgba(20, 24, 36, 0.14);
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.12);
+      --accent-glow: rgba(79, 70, 229, 0.22);
+      --profit: #059669;
+      --profit-soft: rgba(5, 150, 105, 0.12);
+      --loss: #e11d48;
+      --loss-soft: rgba(225, 29, 72, 0.1);
+      --shadow: 0 16px 40px rgba(28, 37, 56, 0.1);
+      --shadow-nav: 0 -4px 24px rgba(28, 37, 56, 0.08);
+      --nav-surface: rgba(255, 255, 255, 0.94);
+    }
+
     * { box-sizing: border-box; }
+
+    .hidden { display: none !important; }
+
+    html {
+      margin: 0;
+      min-height: 100%;
+    }
+
     body {
       margin: 0;
-      padding: 12px;
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--white);
-      min-height: 100vh;
+      min-height: 100%;
+      background:
+        radial-gradient(900px 420px at 50% -12%, rgba(99, 102, 241, 0.14), transparent 55%),
+        radial-gradient(520px 320px at 100% 18%, rgba(52, 211, 153, 0.08), transparent 45%),
+        radial-gradient(400px 280px at 0% 60%, rgba(34, 211, 238, 0.06), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
       -webkit-tap-highlight-color: transparent;
+      padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 16px);
     }
-    h1 { font-size: 1.25rem; margin: 0.5rem 0 0; color: var(--accent); }
-    .sub { font-size: 0.8rem; color: var(--dim); margin: 0.25rem 0 0.75rem 0; }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 14px;
-      margin-bottom: 12px;
+
+    body.theme-light {
+      background:
+        radial-gradient(800px 380px at 50% -8%, rgba(79, 70, 229, 0.08), transparent 55%),
+        var(--bg);
     }
-    .panel-title { font-size: 0.75rem; color: var(--dim); margin-bottom: 4px; }
-    .panel-hint { font-size: 0.7rem; color: var(--dim); margin-top: 2px; }
-    .stat { font-size: 1rem; margin: 4px 0; }
-    .profit { color: var(--profit); }
-    .loss { color: var(--loss); }
-    input, select, button {
-      font-size: 16px; /* avoids zoom on iOS */
-      padding: 10px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: var(--panel);
-      color: var(--white);
-      width: 100%;
-      margin-top: 4px;
+
+    button, input, select {
+      font: inherit;
+      font-size: 16px;
     }
+
     button {
+      border: 0;
       cursor: pointer;
-      font-weight: 600;
-      margin-top: 8px;
-      border: 1px solid var(--border);
-      min-height: 44px;
       touch-action: manipulation;
     }
-    button.primary { background: var(--profit); color: var(--bg); border-color: var(--profit); }
-    button.secondary { background: transparent; color: var(--dim); }
-    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .row label { flex: 0 0 auto; color: var(--dim); font-size: 0.9rem; }
-    .row input { flex: 1 1 100px; }
-    .w-l { display: flex; gap: 12px; margin: 8px 0; }
-    .w-l label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-    .w-l input[type=radio] { width: auto; margin: 0; }
-    .progress-wrap { margin: 8px 0; }
-    .progress-bar {
-      height: 10px;
-      background: var(--panel);
-      border-radius: 5px;
-      overflow: hidden;
+
+    .app {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: calc(18px + env(safe-area-inset-top, 0px)) 16px 0;
     }
-    .progress-fill {
-      height: 100%;
-      background: var(--profit);
-      border-radius: 5px;
-      transition: width 0.2s;
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding-bottom: 14px;
+      margin: 0 -4px;
+      padding-left: 4px;
+      padding-right: 4px;
+      background: linear-gradient(180deg, var(--bg) 55%, color-mix(in srgb, var(--bg) 0%, transparent) 100%);
+      backdrop-filter: blur(12px);
     }
-    .progress-fill.done { background: #00ff88; }
-    .feedback { margin-top: 8px; font-weight: 500; }
-    .tabs { display: flex; gap: 4px; margin-bottom: 10px; }
-    .tabs button {
-      flex: 1;
+
+    .topbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 14px 0 8px;
+      font-size: 1.62rem;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      font-weight: 800;
+    }
+
+    .sub {
       margin: 0;
-      padding: 10px;
+      color: var(--text-dim);
       font-size: 0.9rem;
-      background: var(--panel);
-      color: var(--dim);
+      line-height: 1.5;
     }
-    .tabs button.active { color: var(--accent); border-color: var(--profit); }
-    .tab { display: none; }
-    .tab.show { display: block; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th, td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { color: var(--dim); font-weight: 500; }
-    .history-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .export-btn { margin-top: 8px; font-size: 0.9rem; }
-    .btn-danger { color: var(--loss); }
-    .btn-sm { padding: 6px 10px; font-size: 0.8rem; margin: 0; width: auto; min-height: 36px; }
-    .install-panel { margin-bottom: 10px; padding: 10px; border: 1px dashed var(--border); border-radius: 6px; font-size: 0.85rem; color: var(--dim); }
-    .install-panel button { margin-top: 6px; }
-    .currency-search { margin: 8px 0; }
-    .currency-list-wrap { max-height: 200px; overflow-y: auto; -webkit-overflow-scrolling: touch; margin-top: 4px; border: 1px solid var(--border); border-radius: 4px; }
-    .currency-item { display: block; width: 100%; padding: 12px 14px; text-align: left; background: var(--panel); color: var(--white); border: none; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; min-height: 44px; box-sizing: border-box; }
-    .currency-item:last-child { border-bottom: none; }
-    .currency-item:hover, .currency-item:focus { background: var(--border); }
-    .header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-    .theme-btn { width: auto; margin: 0; padding: 6px 12px; font-size: 0.85rem; }
-    /* Light theme */
-    body.theme-light { --bg: #f0f0f0; --panel: #fff; --dim: #666; --white: #1a1a1a; --accent: #1a1a1a; --profit: #00875a; --loss: #c53030; --border: #ccc; }
-    body.theme-light .progress-fill.done { background: #00a868; }
+
+    .icon-btn {
+      width: auto;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 11px 16px;
+      border-radius: var(--radius-md);
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow);
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .screen {
+      display: none;
+      padding-top: 6px;
+      animation: screenIn 0.22s ease-out;
+    }
+
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .screen.show { display: block; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(145deg, rgba(99, 102, 241, 0.22) 0%, rgba(14, 16, 26, 0.65) 48%, rgba(52, 211, 153, 0.08) 100%),
+        var(--panel);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent 40%, transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -30% -40% auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.2), transparent 65%);
+      filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .hero-top,
+    .card-head,
+    .section-head,
+    .history-row,
+    .inline-actions,
+    .toggle-row,
+    .metric-grid,
+    .stats-strip,
+    .pill-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .pill-row {
+      justify-content: flex-start;
+    }
+
+    .kicker {
+      font-size: 0.74rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+
+    .hero-amount {
+      margin: 8px 0 6px;
+      font-size: 2.05rem;
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.2s ease;
+    }
+
+    .hero-amount.profit { color: var(--profit); }
+    .hero-amount.loss { color: var(--loss); }
+
+    .hero-label {
+      margin: 0;
+      color: var(--text-dim);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      max-width: 36ch;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+
+    .badge.profit {
+      color: var(--profit);
+      background: var(--profit-soft);
+      border-color: color-mix(in srgb, var(--profit) 28%, transparent);
+    }
+
+    .badge.loss {
+      color: var(--loss);
+      background: var(--loss-soft);
+      border-color: color-mix(in srgb, var(--loss) 30%, transparent);
+    }
+
+    .mini-stat {
+      flex: 1 1 120px;
+      min-width: 0;
+      background: color-mix(in srgb, var(--bg-soft) 88%, transparent);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+    }
+
+    .mini-stat-label {
+      display: block;
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+
+    .mini-stat strong {
+      display: block;
+      font-size: 1.08rem;
+      line-height: 1.2;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+    }
+
+    .card-subtitle {
+      margin: 6px 0 0;
+      color: var(--text-dim);
+      font-size: 0.83rem;
+      line-height: 1.5;
+    }
+
+    .metric-grid {
+      margin-top: 16px;
+    }
+
+    .progress-wrap { margin-top: 14px; }
+
+    .progress-text {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-dim);
+      font-size: 0.83rem;
+      font-weight: 500;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 11px;
+      border-radius: 999px;
+      background: var(--bg-soft);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--profit));
+      transition: width 0.25s ease;
+    }
+
+    .progress-fill.done {
+      background: linear-gradient(90deg, var(--profit), #6ee7b7);
+    }
+
+    label {
+      display: block;
+      color: var(--text-dim);
+      font-size: 0.81rem;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 50px;
+      padding: 14px 16px;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--border-strong));
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .stack { display: grid; gap: 14px; }
+
+    .inline-actions {
+      margin-top: 14px;
+    }
+
+    .inline-actions > * {
+      flex: 1 1 120px;
+    }
+
+    .btn,
+    .nav-btn,
+    .seg-btn {
+      min-height: 50px;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      font-weight: 700;
+      transition: transform 0.12s ease, opacity 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn:active,
+    .nav-btn:active,
+    .seg-btn:active {
+      transform: scale(0.985);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #818cf8 100%);
+      color: #fff;
+      box-shadow: 0 12px 28px var(--accent-glow);
+    }
+
+    .btn.secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    .btn.danger {
+      background: var(--loss-soft);
+      color: var(--loss);
+      border: 1px solid color-mix(in srgb, var(--loss) 35%, transparent);
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding: 7px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+
+    .segmented .btn {
+      min-height: 46px;
+    }
+
+    .seg-btn {
+      background: transparent;
+      color: var(--text-dim);
+    }
+
+    .seg-btn.active {
+      background: color-mix(in srgb, var(--text) 6%, transparent);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .seg-btn.win.active {
+      background: var(--profit-soft);
+      color: var(--profit);
+      border-color: color-mix(in srgb, var(--profit) 28%, transparent);
+    }
+
+    .seg-btn.loss.active {
+      background: var(--loss-soft);
+      color: var(--loss);
+      border-color: color-mix(in srgb, var(--loss) 30%, transparent);
+    }
+
+    .feedback {
+      min-height: 22px;
+      margin-top: 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .recent-list,
+    .history-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .trade-item,
+    .history-item {
+      border-radius: var(--radius-lg);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      padding: 16px;
+      transition: border-color 0.15s ease;
+    }
+
+    .trade-item:active,
+    .history-item:active {
+      border-color: var(--border-strong);
+    }
+
+    .trade-main,
+    .history-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .trade-asset,
+    .history-asset {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .trade-meta,
+    .history-meta {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    .trade-side {
+      text-align: right;
+      min-width: 92px;
+    }
+
+    .trade-side strong,
+    .history-side strong {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .history-group {
+      margin-top: 20px;
+    }
+
+    .history-date {
+      margin: 0 0 12px;
+      color: var(--text-dim);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .history-actions .btn {
+      flex: 1 1 auto;
+      min-height: 42px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
+    }
+
+    .empty-state {
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      background: var(--panel-2);
+      border: 1px dashed var(--border-strong);
+      color: var(--text-dim);
+      text-align: center;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .toggle-row {
+      margin-top: 16px;
+    }
+
+    .switch {
+      position: relative;
+      width: 58px;
+      height: 34px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      transition: all 0.18s ease;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      left: 4px;
+      top: 4px;
+      border-radius: 50%;
+      background: var(--text);
+      transition: transform 0.18s ease;
+    }
+
+    .switch input:checked + .slider {
+      background: var(--profit-soft);
+      border-color: color-mix(in srgb, var(--profit) 35%, transparent);
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(24px);
+      background: var(--profit);
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .status-box {
+      padding: 15px;
+      border-radius: var(--radius-lg);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+    }
+
+    .status-box span {
+      display: block;
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .status-box strong {
+      display: block;
+      font-size: 0.98rem;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .log-box {
+      width: 100%;
+      min-height: 120px;
+      max-height: 200px;
+      overflow: auto;
+      margin-top: 14px;
+      padding: 15px;
+      border-radius: var(--radius-lg);
+      background: color-mix(in srgb, var(--bg-soft) 92%, var(--panel-2));
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      margin-bottom: 14px;
+    }
+
+    .filter-chip {
+      flex: 1;
+      min-height: 44px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 0.84rem;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .filter-chip.active {
+      background: var(--accent-soft);
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+    }
+
+    .hint-box {
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      background: var(--panel-2);
+      border: 1px dashed var(--border-strong);
+      color: var(--text-dim);
+      font-size: 0.83rem;
+      line-height: 1.55;
+    }
+
+    .current-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .currency-list-wrap {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      max-height: 300px;
+      overflow: auto;
+      padding: 2px;
+    }
+
+    .currency-item {
+      width: 100%;
+      min-height: 50px;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .currency-item:active {
+      background: var(--accent-soft);
+    }
+
+    .result-hint {
+      display: none;
+      margin-top: 14px;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      font-weight: 500;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+    }
+
+    .result-hint.show { display: block; }
+
+    .result-hint.profit {
+      color: var(--profit);
+      background: var(--profit-soft);
+      border-color: color-mix(in srgb, var(--profit) 25%, transparent);
+    }
+
+    .result-hint.loss {
+      color: var(--loss);
+      background: var(--loss-soft);
+      border-color: color-mix(in srgb, var(--loss) 28%, transparent);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      bottom: max(12px, env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      width: calc(100% - 20px);
+      max-width: 560px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      padding: 10px 8px;
+      border-radius: 22px;
+      background: var(--nav-surface);
+      border: 1px solid var(--border-strong);
+      backdrop-filter: blur(22px) saturate(1.2);
+      -webkit-backdrop-filter: blur(22px) saturate(1.2);
+      box-shadow: var(--shadow-nav);
+      z-index: 30;
+    }
+
+    .nav-btn {
+      min-height: 56px;
+      border-radius: 16px;
+      background: transparent;
+      color: var(--text-dim);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-btn strong {
+      font-size: 0.95rem;
+      line-height: 1;
+      font-weight: 800;
+      opacity: 0.9;
+    }
+
+    .nav-btn.active {
+      background: var(--accent-soft);
+      color: var(--text);
+      border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    @media (max-width: 380px) {
+      .app { padding-left: 12px; padding-right: 12px; }
+      .hero-amount { font-size: 1.78rem; }
+      .bottom-nav { gap: 4px; padding: 8px 6px; width: calc(100% - 14px); }
+      .nav-btn { font-size: 0.64rem; min-height: 52px; }
+    }
+
   </style>
 </head>
 <body>
-  <div class="header-row">
-    <div>
-      <h1>OTC 5-SEC TRACKER</h1>
-      <p class="sub" id="dataHintLine"><span id="dataHint">Saved on this device</span></p>
-    </div>
-    <button type="button" id="themeBtn" class="theme-btn secondary">Light</button>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-row">
+        <div class="eyebrow">OTC Tracker</div>
+        <button type="button" id="themeBtn" class="icon-btn">Theme</button>
+      </div>
+      <h1>Session log, built for your phone.</h1>
+      <p class="sub" id="dataHint">Saved on this device. Export sync file when you want to move data.</p>
+    </header>
+
+    <main>
+      <section id="screenHome" class="screen show">
+        <div class="hero">
+          <div class="hero-top">
+            <div>
+              <div class="kicker">Today</div>
+              <div id="mali" class="hero-amount">Session Mali: —</div>
+              <p class="hero-label">Session overview first. Quick log and recent activity stay right below.</p>
+            </div>
+            <div id="mindsetBadge" class="badge">READY</div>
+          </div>
+          <div class="metric-grid">
+            <div class="mini-stat">
+              <span class="mini-stat-label">Win Rate</span>
+              <strong id="winrate">—%</strong>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat-label">Trades Today</span>
+              <strong id="trades">0</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Daily goal</h2>
+              <p class="card-subtitle">Set your session target and keep the progress visible without leaving home.</p>
+            </div>
+          </div>
+          <div class="stack" style="margin-top:14px">
+            <div>
+              <label id="goalCurrencyLabel" for="goalInput">Target (ZAR)</label>
+              <input type="number" id="goalInput" min="0" step="1" placeholder="0">
+            </div>
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="setGoalBtn" class="btn secondary">Save goal</button>
+          </div>
+          <div class="progress-wrap">
+            <span id="goalLabel" class="progress-text">Set a daily goal.</span>
+            <div class="progress-bar"><div id="goalBar" class="progress-fill"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Quick log</h2>
+              <p class="card-subtitle">One fast form for manual trades. Designed for thumb use, not desktop-style forms.</p>
+            </div>
+          </div>
+          <div class="stack" style="margin-top:14px">
+            <div>
+              <label id="amountCurrencyLabel" for="amountInput">Amount (ZAR)</label>
+              <input type="number" id="amountInput" min="0" step="0.01" placeholder="0">
+            </div>
+            <div>
+              <label for="assetInput">Asset</label>
+              <input type="text" id="assetInput" placeholder="OTC">
+            </div>
+            <div>
+              <label>Result</label>
+              <div class="segmented">
+                <button type="button" id="resultWin" class="seg-btn win active">Win</button>
+                <button type="button" id="resultLoss" class="seg-btn loss">Loss</button>
+              </div>
+            </div>
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="logBtn" class="btn primary">Log trade</button>
+          </div>
+          <div id="feedback" class="feedback"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Recent trades</h2>
+              <p class="card-subtitle">A small preview from today so you do not need to jump to history for every check.</p>
+            </div>
+          </div>
+          <div id="recentTrades" class="recent-list"></div>
+        </div>
+      </section>
+
+      <section id="screenHistory" class="screen">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">History</h2>
+              <p class="card-subtitle">Mobile-friendly trade cards with date grouping instead of a cramped table.</p>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <button type="button" id="filterAllBtn" class="filter-chip active">All trades</button>
+            <button type="button" id="filterTodayBtn" class="filter-chip">Today</button>
+          </div>
+          <div class="inline-actions" style="margin-top:0">
+            <button type="button" id="exportBtn" class="btn secondary">Export CSV</button>
+            <button type="button" id="clearAllBtn" class="btn danger">Wipe data</button>
+          </div>
+          <div id="historyList" class="history-list"></div>
+        </div>
+      </section>
+
+      <section id="screenTrack" class="screen">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Auto Track</h2>
+              <p class="card-subtitle">Mobile screen for the tracking feature. It stays lightweight here and keeps the main state visible.</p>
+            </div>
+            <div id="trackingStatusBadge" class="badge">Stopped</div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <strong style="display:block;font-size:1rem">Automatic trade tracking</strong>
+              <div class="card-subtitle">Turn monitoring on or off quickly from one switch.</div>
+            </div>
+            <label class="switch" aria-label="Toggle auto track">
+              <input type="checkbox" id="trackingToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="status-grid">
+            <div class="status-box">
+              <span>Trades today</span>
+              <strong id="trackingTradesToday">0</strong>
+            </div>
+            <div class="status-box">
+              <span>Method</span>
+              <strong id="trackingMethod">Placeholder</strong>
+            </div>
+            <div class="status-box" style="grid-column: 1 / -1;">
+              <span>Relay status</span>
+              <strong id="trackingRelayStatus">Not configured</strong>
+            </div>
+            <div class="status-box" style="grid-column: 1 / -1;">
+              <span>Last trade</span>
+              <strong id="trackingLastTrade">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Tracking settings</h2>
+              <p class="card-subtitle">Kept intentionally minimal for mobile.</p>
+            </div>
+          </div>
+          <div class="stack" style="margin-top:14px">
+            <div>
+              <label for="trackingPollingInterval">Polling interval (sec)</label>
+              <input type="number" id="trackingPollingInterval" min="1" step="1" value="5">
+            </div>
+            <label><input type="checkbox" id="trackingAutoSave"> Auto-save detected trades</label>
+            <label><input type="checkbox" id="trackingSyncJournal"> Sync with trade journal</label>
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="saveTrackingSettingsBtn" class="btn secondary">Save tracking settings</button>
+          </div>
+          <div id="trackingSaveHint" class="result-hint"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Activity</h2>
+              <p class="card-subtitle">Real-time notes for this screen.</p>
+            </div>
+          </div>
+          <div id="trackingActivityLog" class="log-box"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Auto Track tutorial</h2>
+              <p class="card-subtitle">Step-by-step setup and usage instructions.</p>
+            </div>
+          </div>
+          <div class="hint-box">
+            1. Configure Cloud Relay in More tab (URL, user key, optional token).<br>
+            2. Download and install relay userscript in Tampermonkey.<br>
+            3. Keep Pocket Option deals list visible in browser.<br>
+            4. Turn Auto Track ON and run Sync now to verify connection.<br>
+            5. Only newly closed trades are saved while tracking is ON.
+          </div>
+        </div>
+      </section>
+
+      <section id="screenBot" class="screen">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Auto Bot</h2>
+              <p class="card-subtitle">Mobile bot can queue relay orders for execution by the companion userscript.</p>
+            </div>
+            <div id="botStatusBadge" class="badge">Stopped</div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <strong style="display:block;font-size:1rem">Automatic trading bot</strong>
+              <div class="card-subtitle">30s contracts only. Paper mode simulates a 68–80% win band (not live edge). Live mode needs relay + executor userscript on Pocket Option (same user key as More tab).</div>
+            </div>
+            <label class="switch" aria-label="Toggle auto bot">
+              <input type="checkbox" id="botToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="status-grid">
+            <div class="status-box">
+              <span>Trades today</span>
+              <strong id="botTradesToday">0</strong>
+            </div>
+            <div class="status-box">
+              <span>Session P/L</span>
+              <strong id="botSessionPnl">0.00</strong>
+            </div>
+            <div class="status-box" style="grid-column: 1 / -1;">
+              <span>Last trade</span>
+              <strong id="botLastTrade">—</strong>
+            </div>
+            <div class="status-box" style="grid-column: 1 / -1;">
+              <span>Execution bridge</span>
+              <strong id="botBridgeStatus">Not configured</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Bot settings</h2>
+              <p class="card-subtitle">Easy mode for quick setup, Advanced mode for full control.</p>
+            </div>
+          </div>
+          <div class="segmented" style="margin-top:14px">
+            <button type="button" id="botSettingsEasyBtn" class="btn seg-btn active">Easy</button>
+            <button type="button" id="botSettingsAdvBtn" class="btn seg-btn">Advanced</button>
+          </div>
+          <div id="botSettingsEasyPanel" class="stack" style="margin-top:14px">
+            <label><input type="checkbox" id="botPaperTrading"> Paper mode (no real relay order posts)</label>
+            <div>
+              <label for="botAsset">Asset</label>
+              <input type="text" id="botAsset" value="EURUSD_otc">
+            </div>
+            <div>
+              <label for="botAmount">Amount</label>
+              <input type="number" id="botAmount" min="0" step="0.01" value="1">
+            </div>
+            <div>
+              <label for="botIntervalSec">Signal interval (sec), use ≥35 vs 30s trades</label>
+              <input type="number" id="botIntervalSec" min="5" value="35">
+            </div>
+          </div>
+          <div id="botSettingsAdvancedPanel" class="stack hidden" style="margin-top:14px">
+            <div>
+              <label for="botDirectionMode">Direction mode</label>
+              <select id="botDirectionMode">
+                <option value="alternate">Alternate</option>
+                <option value="random">Random</option>
+                <option value="call">Call only</option>
+                <option value="put">Put only</option>
+              </select>
+            </div>
+            <div>
+              <p class="card-subtitle" style="margin:0;font-size:0.85rem">Trade duration: <strong>30s</strong> (fixed). Executor userscript places 30s deals on the site.</p>
+              <label for="botPaperWinMin">Paper win rate min (0–1)</label>
+              <input type="number" id="botPaperWinMin" min="0" max="1" step="0.01" value="0.68">
+              <label for="botPaperWinMax">Paper win rate max (0–1)</label>
+              <input type="number" id="botPaperWinMax" min="0" max="1" step="0.01" value="0.80">
+            </div>
+            <div>
+              <label for="botMaxSession">Max trades per session</label>
+              <input type="number" id="botMaxSession" min="0" value="0">
+            </div>
+            <div>
+              <label for="botMaxMinute">Max trades per minute</label>
+              <input type="number" id="botMaxMinute" min="0" value="0">
+            </div>
+            <div>
+              <label for="botRelayPollSec">Relay result poll (sec)</label>
+              <input type="number" id="botRelayPollSec" min="2" value="5">
+            </div>
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="saveBotSettingsBtn" class="btn secondary">Apply bot settings</button>
+            <button type="button" id="downloadBotExecScriptBtn" class="btn secondary">Download bot executor userscript</button>
+          </div>
+          <div id="botSettingsHint" class="result-hint"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Bot activity</h2>
+              <p class="card-subtitle">Status log for mobile users.</p>
+            </div>
+          </div>
+          <div id="botActivityLog" class="log-box"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Auto Bot tutorial</h2>
+              <p class="card-subtitle">Execution bridge setup (no direct Pocket Option API).</p>
+            </div>
+          </div>
+          <div class="hint-box">
+            1. Save Easy settings (asset, amount, interval).<br>
+            2. Configure relay in More tab using same user key for bot + executor.<br>
+            3. Download Bot Executor userscript from this Bot screen.<br>
+            4. Install userscript in Tampermonkey where Pocket Option runs.<br>
+            5. Tap Apply bot settings, then start the bot. Live orders need the executor userscript on PO with a public HTTPS relay URL.
+          </div>
+        </div>
+      </section>
+
+      <section id="screenMore" class="screen">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">App settings</h2>
+              <p class="card-subtitle">Theme, currency, sync, updates, and the destructive actions you only use occasionally.</p>
+            </div>
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="themeToggleMore" class="btn secondary">Toggle theme</button>
+          </div>
+          <div class="pill-row" style="margin-top:12px">
+            <div id="trackingSummaryPill" class="badge">Tracking: —</div>
+            <div id="botSummaryPill" class="badge">Bot: —</div>
+            <div id="connectionSummaryPill" class="badge">Connection: —</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Cloud relay (Auto Track)</h2>
+              <p class="card-subtitle">Connect mobile Auto Track to your hosted relay so real events sync into this app.</p>
+            </div>
+          </div>
+          <div class="stack" style="margin-top:14px">
+            <div>
+              <label for="relayUrlInput">Relay URL</label>
+              <input type="text" id="relayUrlInput" placeholder="https://your-relay-domain.com">
+            </div>
+            <div>
+              <label for="relayUserKeyInput">User key</label>
+              <input type="text" id="relayUserKeyInput" placeholder="your-unique-user-key">
+            </div>
+            <div>
+              <label for="relayTokenInput">Relay token (optional, recommended)</label>
+              <input type="password" id="relayTokenInput" placeholder="x-relay-token">
+            </div>
+            <label><input type="checkbox" id="relayAutoSync"> Auto-sync relay while Auto Track is ON</label>
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="saveRelaySettingsBtn" class="btn secondary">Save relay settings</button>
+            <button type="button" id="testRelayBtn" class="btn secondary">Test relay</button>
+            <button type="button" id="syncRelayNowBtn" class="btn primary">Sync now</button>
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="downloadRelayScriptBtn" class="btn secondary">Download relay userscript</button>
+          </div>
+          <div class="hint-box">
+            Use the downloaded userscript in Tampermonkey on the browser that runs Pocket Option.
+            It posts closed trades to your relay with your user key.
+          </div>
+          <div id="relayHint" class="result-hint"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Check for update</h2>
+              <p class="card-subtitle">Current app version: <strong id="appVersionLabel">1.0.1</strong></p>
+            </div>
+          </div>
+          <div class="stack" style="margin-top:14px">
+            <div>
+              <label for="updateCheckUrlInput">Update URL</label>
+              <input type="text" id="updateCheckUrlInput" placeholder="https://.../version.json">
+            </div>
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="saveUpdateUrlBtn" class="btn secondary">Save URL</button>
+            <button type="button" id="checkUpdateBtn" class="btn primary">Check</button>
+          </div>
+          <div id="updateCheckResult" class="result-hint"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Cloud sync</h2>
+              <p class="card-subtitle">Export the sync file to Drive or OneDrive, then import it on another device.</p>
+            </div>
+          </div>
+          <div class="hint-box">
+            1. Export sync file and save it to cloud storage.
+            2. On desktop, point the sync path to that same file.
+            3. Import the file here when you want desktop data on mobile.
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="exportSyncFileBtn" class="btn secondary">Export sync file</button>
+            <button type="button" id="importSyncFileBtn" class="btn primary">Import sync file</button>
+            <input type="file" id="importSyncFileInput" accept=".json,application/json" style="position:absolute;left:-9999px">
+          </div>
+          <div id="syncResultHint" class="result-hint"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Currency</h2>
+              <p class="card-subtitle">Used for amounts and daily goal displays.</p>
+            </div>
+          </div>
+          <div id="currentCurrencyLabel" class="current-pill">ZAR</div>
+          <div class="stack" style="margin-top:14px">
+            <div>
+              <label for="currencySearch">Search currency</label>
+              <input type="text" id="currencySearch" placeholder="Search currencies...">
+            </div>
+          </div>
+          <div id="currencyListWrap" class="currency-list-wrap"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Danger zone</h2>
+              <p class="card-subtitle">Use carefully. This resets your local mobile data.</p>
+            </div>
+          </div>
+          <div class="inline-actions">
+            <button type="button" id="wipeDataBtn" class="btn danger">Clear all local data</button>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <div class="tabs">
-    <button type="button" id="tabDash" class="active">Dashboard</button>
-    <button type="button" id="tabHistory">History</button>
-    <button type="button" id="tabExtras">Extras</button>
-  </div>
-
-  <div id="dashTab" class="tab show">
-    <div class="panel">
-      <div class="panel-title">SESSION DASHBOARD</div>
-      <div class="panel-hint">Today's P&L, win rate, trades. Mindset from your run.</div>
-      <div class="stat" id="mali">Session Mali: —</div>
-      <div class="stat" id="winrate">Win Rate: —%</div>
-      <div class="stat" id="trades">Total Trades (Today): 0</div>
-      <div class="stat">Mindset: <span id="mindset">READY</span></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">DAILY GOAL</div>
-      <div class="panel-hint">Set target. Bar fills as session profit. Currency in Extras.</div>
-      <div class="row">
-        <label id="goalCurrencyLabel">Target (ZAR)</label>
-        <input type="number" id="goalInput" min="0" step="1" placeholder="0">
-        <button type="button" id="setGoalBtn" class="secondary" style="width:auto">Set</button>
-      </div>
-      <div class="progress-wrap">
-        <div id="goalLabel" class="panel-hint">Set a daily goal.</div>
-        <div class="progress-bar"><div id="goalBar" class="progress-fill" style="width:0%"></div></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">LOG TRADE</div>
-      <div class="panel-hint">Amount, asset, Win/Loss. Saves on this device. Currency in Extras.</div>
-      <label id="amountCurrencyLabel">Amount (ZAR)</label>
-      <input type="number" id="amountInput" min="0" step="0.01" placeholder="0">
-      <label>Asset</label>
-      <input type="text" id="assetInput" placeholder="OTC">
-      <label>Result</label>
-      <div class="w-l">
-        <label><input type="radio" name="result" value="W" checked> Win</label>
-        <label><input type="radio" name="result" value="L"> Loss</label>
-      </div>
-      <button type="button" id="logBtn" class="primary">Log trade</button>
-      <div id="feedback" class="feedback"></div>
-    </div>
-  </div>
-
-  <div id="historyTab" class="tab">
-    <div class="panel">
-      <div class="panel-title">TRADE HISTORY</div>
-      <div class="panel-hint">All trades on this device. Export CSV to merge with desktop.</div>
-      <div class="row">
-        <label><input type="radio" name="filter" value="all" checked> All</label>
-        <label><input type="radio" name="filter" value="today"> Today</label>
-      </div>
-      <div class="history-wrap">
-        <table id="historyTable">
-          <thead><tr><th>Date</th><th>Time</th><th>Amount</th><th>Asset</th><th>W/L</th><th></th></tr></thead>
-          <tbody id="historyBody"></tbody>
-        </table>
-      </div>
-      <button type="button" id="exportBtn" class="export-btn secondary">Export CSV</button>
-      <button type="button" id="clearAllBtn" class="export-btn btn-danger secondary">Clear all data (start fresh)</button>
-    </div>
-  </div>
-
-  <div id="extrasTab" class="tab">
-    <div class="panel">
-      <span class="panel-title">Check for update</span>
-      <p class="panel-hint">Set the URL to a version.json (e.g. GitHub raw or your server). Then tap Check.</p>
-      <p class="panel-hint">Version: <strong id="appVersionLabel">1.0.1</strong></p>
-      <input type="text" id="updateCheckUrlInput" placeholder="https://.../version.json" class="currency-search">
-      <div class="row" style="flex-wrap:wrap; gap:8px; margin-top:8px">
-        <button type="button" id="saveUpdateUrlBtn" class="theme-btn secondary">Save URL</button>
-        <button type="button" id="checkUpdateBtn" class="theme-btn primary">Check for update</button>
-      </div>
-      <p class="panel-hint" id="updateCheckResult" style="margin-top:8px;display:none"></p>
-      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
-      <span class="panel-title">Cloud sync (Drive / OneDrive)</span>
-      <details class="panel-hint" style="margin:6px 0 8px 0;">
-        <summary style="cursor:pointer; color:var(--accent);">How to sync</summary>
-        <p style="margin:8px 0 0 0;">1. Export sync file → save the file to Google Drive or OneDrive.<br>2. On PC: open desktop app, Extras → set sync file path to that file in your Drive/OneDrive folder → Download from sync file.<br>3. To send data to phone: on PC click Upload to sync file; on phone tap Import sync file and choose the file from Drive.</p>
-      </details>
-      <div class="row" style="flex-wrap:wrap; gap:8px; margin-top:8px">
-        <button type="button" id="exportSyncFileBtn" class="theme-btn secondary">Export sync file</button>
-        <button type="button" id="importSyncFileBtn" class="theme-btn primary">Import sync file</button>
-        <input type="file" id="importSyncFileInput" accept=".json,application/json" style="position:absolute;left:-9999px">
-      </div>
-      <p class="panel-hint" id="syncResultHint" style="margin-top:8px;display:none"></p>
-      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
-      <span class="panel-title">Currency</span>
-      <p class="panel-hint">Search and select currency for amounts and goals.</p>
-      <p class="panel-hint">Current: <strong id="currentCurrencyLabel">ZAR</strong></p>
-      <input type="text" id="currencySearch" placeholder="Search currencies..." class="currency-search">
-      <div id="currencyListWrap" class="currency-list-wrap"></div>
-    </div>
-  </div>
+  <nav class="bottom-nav">
+    <button type="button" class="nav-btn active" data-screen="screenHome"><strong>O</strong><span>Home</span></button>
+    <button type="button" class="nav-btn" data-screen="screenHistory"><strong>H</strong><span>History</span></button>
+    <button type="button" class="nav-btn" data-screen="screenTrack"><strong>T</strong><span>Track</span></button>
+    <button type="button" class="nav-btn" data-screen="screenBot"><strong>B</strong><span>Bot</span></button>
+    <button type="button" class="nav-btn" data-screen="screenMore"><strong>M</strong><span>More</span></button>
+  </nav>
 
   <script>
     const STORAGE_TRADES = 'otc_trades';
@@ -230,19 +1325,64 @@
     const STORAGE_THEME = 'otc_theme';
     const STORAGE_CURRENCY = 'otc_currency';
     const STORAGE_UPDATE_CHECK_URL = 'otc_update_check_url';
-    const APP_VERSION = '1.0.1';
+    const STORAGE_TRACKING_SETTINGS = 'otc_tracking_settings';
+    const STORAGE_BOT_SETTINGS = 'otc_bot_settings';
+    const STORAGE_BOT_LAST_ORDER_ID = 'otc_bot_last_order_id';
+    const STORAGE_HISTORY_FILTER = 'otc_history_filter';
+    const STORAGE_RELAY_SETTINGS = 'otc_relay_settings';
+    const STORAGE_RELAY_LAST_EVENT_ID = 'otc_relay_last_event_id';
+    const APP_VERSION = '1.0.2';
+    const BOT_DURATION_SEC = 30;
 
     var CURRENCIES = [["AED","United Arab Emirates Dirham"],["AFN","Afghan Afghani"],["ALL","Albanian Lek"],["AMD","Armenian Dram"],["ANG","Netherlands Antillean Guilder"],["AOA","Angolan Kwanza"],["ARS","Argentine Peso"],["AUD","Australian Dollar"],["AWG","Aruban Florin"],["AZN","Azerbaijani Manat"],["BAM","Bosnia-Herzegovina Convertible Mark"],["BBD","Barbadian Dollar"],["BDT","Bangladeshi Taka"],["BGN","Bulgarian Lev"],["BHD","Bahraini Dinar"],["BIF","Burundian Franc"],["BMD","Bermudan Dollar"],["BND","Brunei Dollar"],["BOB","Bolivian Boliviano"],["BRL","Brazilian Real"],["BSD","Bahamian Dollar"],["BTN","Bhutanese Ngultrum"],["BWP","Botswanan Pula"],["BYN","Belarusian Ruble"],["BZD","Belize Dollar"],["CAD","Canadian Dollar"],["CDF","Congolese Franc"],["CHF","Swiss Franc"],["CLP","Chilean Peso"],["CNY","Chinese Yuan"],["COP","Colombian Peso"],["CRC","Costa Rican Colón"],["CUP","Cuban Peso"],["CVE","Cape Verdean Escudo"],["CZK","Czech Koruna"],["DJF","Djiboutian Franc"],["DKK","Danish Krone"],["DOP","Dominican Peso"],["DZD","Algerian Dinar"],["EGP","Egyptian Pound"],["ERN","Eritrean Nakfa"],["ETB","Ethiopian Birr"],["EUR","Euro"],["FJD","Fijian Dollar"],["FKP","Falkland Islands Pound"],["GBP","British Pound Sterling"],["GEL","Georgian Lari"],["GHS","Ghanaian Cedi"],["GIP","Gibraltar Pound"],["GMD","Gambian Dalasi"],["GNF","Guinean Franc"],["GTQ","Guatemalan Quetzal"],["GYD","Guyanaese Dollar"],["HKD","Hong Kong Dollar"],["HNL","Honduran Lempira"],["HRK","Croatian Kuna"],["HTG","Haitian Gourde"],["HUF","Hungarian Forint"],["IDR","Indonesian Rupiah"],["ILS","Israeli New Shekel"],["INR","Indian Rupee"],["IQD","Iraqi Dinar"],["IRR","Iranian Rial"],["ISK","Icelandic Króna"],["JMD","Jamaican Dollar"],["JOD","Jordanian Dinar"],["JPY","Japanese Yen"],["KES","Kenyan Shilling"],["KGS","Kyrgyzstani Som"],["KHR","Cambodian Riel"],["KMF","Comorian Franc"],["KPW","North Korean Won"],["KRW","South Korean Won"],["KWD","Kuwaiti Dinar"],["KYD","Cayman Islands Dollar"],["KZT","Kazakhstani Tenge"],["LAK","Laotian Kip"],["LBP","Lebanese Pound"],["LKR","Sri Lankan Rupee"],["LRD","Liberian Dollar"],["LSL","Lesotho Loti"],["LYD","Libyan Dinar"],["MAD","Moroccan Dirham"],["MDL","Moldovan Leu"],["MGA","Malagasy Ariary"],["MKD","Macedonian Denar"],["MMK","Myanmar Kyat"],["MNT","Mongolian Tugrik"],["MOP","Macanese Pataca"],["MRU","Mauritanian Ouguiya"],["MUR","Mauritian Rupee"],["MVR","Maldivian Rufiyaa"],["MWK","Malawian Kwacha"],["MXN","Mexican Peso"],["MYR","Malaysian Ringgit"],["MZN","Mozambican Metical"],["NAD","Namibian Dollar"],["NGN","Nigerian Naira"],["NIO","Nicaraguan Córdoba"],["NOK","Norwegian Krone"],["NPR","Nepalese Rupee"],["NZD","New Zealand Dollar"],["OMR","Omani Rial"],["PAB","Panamanian Balboa"],["PEN","Peruvian Sol"],["PGK","Papua New Guinean Kina"],["PHP","Philippine Peso"],["PKR","Pakistani Rupee"],["PLN","Polish Złoty"],["PYG","Paraguayan Guaraní"],["QAR","Qatari Rial"],["RON","Romanian Leu"],["RSD","Serbian Dinar"],["RUB","Russian Ruble"],["RWF","Rwandan Franc"],["SAR","Saudi Riyal"],["SBD","Solomon Islands Dollar"],["SCR","Seychellois Rupee"],["SDG","Sudanese Pound"],["SEK","Swedish Krona"],["SGD","Singapore Dollar"],["SHP","Saint Helena Pound"],["SLL","Sierra Leonean Leone"],["SOS","Somali Shilling"],["SRD","Surinamese Dollar"],["SSP","South Sudanese Pound"],["STN","São Tomé and Príncipe Dobra"],["SYP","Syrian Pound"],["SZL","Swazi Lilangeni"],["THB","Thai Baht"],["TJS","Tajikistani Somoni"],["TMT","Turkmenistani Manat"],["TND","Tunisian Dinar"],["TOP","Tongan Paʻanga"],["TRY","Turkish Lira"],["TTD","Trinidad and Tobago Dollar"],["TWD","New Taiwan Dollar"],["TZS","Tanzanian Shilling"],["UAH","Ukrainian Hryvnia"],["UGX","Ugandan Shilling"],["USD","United States Dollar"],["UYU","Uruguayan Peso"],["UZS","Uzbekistan Som"],["VES","Venezuelan Bolívar"],["VND","Vietnamese Dōng"],["VUV","Vanuatu Vatu"],["WST","Samoan Tala"],["XAF","Central African CFA Franc"],["XCD","East Caribbean Dollar"],["XOF","West African CFA Franc"],["XPF","CFP Franc"],["YER","Yemeni Rial"],["ZAR","South African Rand"],["ZMW","Zambian Kwacha"],["ZWL","Zimbabwean Dollar"]];
     var CURRENCY_SYMBOLS = {"AED":"د.إ","AFN":"؋","ALL":"L","AMD":"֏","ANG":"ƒ","AOA":"Kz","ARS":"$","AUD":"A$","AWG":"ƒ","AZN":"₼","BAM":"KM","BBD":"$","BDT":"৳","BGN":"лв","BHD":".د.ب","BIF":"FBu","BMD":"$","BND":"$","BOB":"Bs","BRL":"R$","BSD":"$","BTN":"Nu.","BWP":"P","BYN":"Br","BZD":"BZ$","CAD":"C$","CDF":"FC","CHF":"CHF","CLP":"$","CNY":"¥","COP":"$","CRC":"₡","CUP":"$","CVE":"$","CZK":"Kč","DJF":"Fdj","DKK":"kr","DOP":"RD$","DZD":"د.ج","EGP":"E£","ERN":"Nfk","ETB":"Br","EUR":"€","FJD":"FJ$","FKP":"£","GBP":"£","GEL":"₾","GHS":"₵","GIP":"£","GMD":"D","GNF":"FG","GTQ":"Q","GYD":"G$","HKD":"HK$","HNL":"L","HRK":"kn","HTG":"G","HUF":"Ft","IDR":"Rp","ILS":"₪","INR":"₹","IQD":"ع.د","IRR":"﷼","ISK":"kr","JMD":"J$","JOD":"د.ا","JPY":"¥","KES":"KSh","KGS":"с","KHR":"៛","KMF":"CF","KPW":"₩","KRW":"₩","KWD":"د.ك","KYD":"CI$","KZT":"₸","LAK":"₭","LBP":"ل.ل","LKR":"Rs","LRD":"L$","LSL":"L","LYD":"ل.د","MAD":"د.م.","MDL":"L","MGA":"Ar","MKD":"ден","MMK":"K","MNT":"₮","MOP":"MOP$","MRU":"UM","MUR":"₨","MVR":"Rf","MWK":"MK","MXN":"Mex$","MYR":"RM","MZN":"MT","NAD":"N$","NGN":"₦","NIO":"C$","NOK":"kr","NPR":"₨","NZD":"NZ$","OMR":"ر.ع.","PAB":"B/.","PEN":"S/","PGK":"K","PHP":"₱","PKR":"₨","PLN":"zł","PYG":"₲","QAR":"ر.ق","RON":"lei","RSD":"дин.","RUB":"₽","RWF":"FRw","SAR":"ر.س","SBD":"SI$","SCR":"₨","SDG":"ج.س.","SEK":"kr","SGD":"S$","SHP":"£","SLL":"Le","SOS":"Sh","SRD":"SRD","SSP":"£","STN":"Db","SYP":"£","SZL":"E","THB":"฿","TJS":"SM","TMT":"m","TND":"د.ت","TOP":"T$","TRY":"₺","TTD":"TT$","TWD":"NT$","TZS":"TSh","UAH":"₴","UGX":"USh","USD":"$","UYU":"$U","UZS":"so'm","VES":"Bs.S","VND":"₫","VUV":"VT","WST":"WS$","XAF":"FCFA","XCD":"EC$","XOF":"CFA","XPF":"₣","YER":"﷼","ZAR":"R","ZMW":"ZK","ZWL":"Z$"};
+
+    var selectedResult = 'W';
+    var historyFilter = localStorage.getItem(STORAGE_HISTORY_FILTER) || 'all';
+    var trackingState = {
+      running: false,
+      tradesToday: 0,
+      lastTrade: null,
+      activityLog: [],
+      status: 'Stopped',
+      relayLastSyncAt: '',
+      relayLastError: '',
+      relayEventsFetched: 0,
+      relayTradesAdded: 0
+    };
+    var botState = { running: false, status: 'Stopped', tradesToday: 0, sessionPnl: 0, lastTrade: null, activityLog: [], settingsTab: 'easy' };
+    var relaySyncTimer = null;
+    var botTimer = null;
 
     function getCurrency() { return localStorage.getItem(STORAGE_CURRENCY) || 'ZAR'; }
     function setCurrency(code) { localStorage.setItem(STORAGE_CURRENCY, code); }
     function getUpdateCheckUrl() { return (localStorage.getItem(STORAGE_UPDATE_CHECK_URL) || '').trim(); }
     function setUpdateCheckUrl(url) { localStorage.setItem(STORAGE_UPDATE_CHECK_URL, (url || '').trim()); }
+    function getTheme() { return localStorage.getItem(STORAGE_THEME) || 'dark'; }
+    function setThemeStore(v) { localStorage.setItem(STORAGE_THEME, v); }
+    function getGoal() {
+      const g = localStorage.getItem(STORAGE_GOAL);
+      return g ? parseFloat(g) : 0;
+    }
+    function setGoal(v) { localStorage.setItem(STORAGE_GOAL, String(Math.max(0, v))); }
+
+    function getTrades() {
+      try {
+        const raw = localStorage.getItem(STORAGE_TRADES);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveTrades(trades) {
+      localStorage.setItem(STORAGE_TRADES, JSON.stringify(trades));
+    }
+
     function versionNewer(remote, local) {
       function parse(v) {
         var parts = [];
-        (v || '0').trim().split('.').forEach(function(x) {
+        (v || '0').trim().split('.').forEach(function (x) {
           parts.push(parseInt(x, 10) || 0);
         });
         return parts;
@@ -256,38 +1396,11 @@
       }
       return false;
     }
+
     function formatAmount(amount, code) {
       var sym = CURRENCY_SYMBOLS[code] || code;
-      return sym === code ? amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ' + code : sym + ' ' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
-
-    function getTheme() { return localStorage.getItem(STORAGE_THEME) || 'dark'; }
-    function setThemeStore(v) { localStorage.setItem(STORAGE_THEME, v); }
-    function applyTheme() {
-      var theme = getTheme();
-      document.body.classList.toggle('theme-light', theme === 'light');
-      document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'light' ? '#f0f0f0' : '#0a0a0a');
-      document.getElementById('themeBtn').textContent = theme === 'dark' ? 'Light' : 'Dark';
-    }
-
-    function getTrades() {
-      try {
-        const raw = localStorage.getItem(STORAGE_TRADES);
-        return raw ? JSON.parse(raw) : [];
-      } catch (e) { return []; }
-    }
-
-    function saveTrades(trades) {
-      localStorage.setItem(STORAGE_TRADES, JSON.stringify(trades));
-    }
-
-    function getGoal() {
-      const g = localStorage.getItem(STORAGE_GOAL);
-      return g ? parseFloat(g) : 0;
-    }
-
-    function setGoal(v) {
-      localStorage.setItem(STORAGE_GOAL, String(Math.max(0, v)));
+      var clean = (Math.abs(amount) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return sym === code ? clean + ' ' + code : sym + ' ' + clean;
     }
 
     function todayStr() {
@@ -302,20 +1415,22 @@
 
     function sessionStats(trades) {
       const today = todayStr();
-      const session = trades.filter(t => t.date === today);
+      const session = trades.filter(function (t) { return t.date === today; });
       const total = session.length;
-      const wins = session.filter(t => t.result === 'W').length;
+      const wins = session.filter(function (t) { return t.result === 'W'; }).length;
       let mali = 0;
-      session.forEach(t => {
+      session.forEach(function (t) {
         const amt = parseFloat(t.amount) || 0;
         mali += t.result === 'W' ? amt : -amt;
       });
       const winRate = total ? (wins / total * 100) : 0;
-      return { session_mali: mali, win_rate: winRate, total_trades: total, wins, losses: total - wins };
+      return { session_mali: mali, win_rate: winRate, total_trades: total, wins: wins, losses: total - wins };
     }
 
     function mindset(stats, goal) {
-      const { session_mali: mali, total_trades: total, win_rate: winRate } = stats;
+      const mali = stats.session_mali;
+      const total = stats.total_trades;
+      const winRate = stats.win_rate;
       if (total === 0) return 'READY';
       if (goal > 0 && mali >= goal) return 'LOCKED IN';
       if (stats.losses >= 3 && winRate < 40) return 'STAY COLD';
@@ -328,11 +1443,26 @@
       return isWin ? 'Nxa, keep grinding.' : "Don't be a chop, reset.";
     }
 
+    function setHint(id, text, type) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      el.className = 'result-hint show' + (type === 'profit' ? ' profit' : type === 'loss' ? ' loss' : '');
+    }
+
+    function applyTheme() {
+      var theme = getTheme();
+      document.body.classList.toggle('theme-light', theme === 'light');
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'light' ? '#eef1f7' : '#07080d');
+      document.getElementById('themeBtn').textContent = theme === 'dark' ? 'Light' : 'Dark';
+      document.getElementById('themeToggleMore').textContent = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+    }
+
     function updateCurrencyLabels() {
       var code = getCurrency();
-      document.getElementById('currentCurrencyLabel').textContent = code;
       document.getElementById('goalCurrencyLabel').textContent = 'Target (' + code + ')';
       document.getElementById('amountCurrencyLabel').textContent = 'Amount (' + code + ')';
+      document.getElementById('currentCurrencyLabel').textContent = code;
     }
 
     function renderDashboard() {
@@ -342,14 +1472,15 @@
       const curr = getCurrency();
       const m = stats.session_mali;
       const maliEl = document.getElementById('mali');
-      maliEl.textContent = 'Session Mali: ' + (m >= 0 ? '+ ' : '- ') + formatAmount(Math.abs(m), curr);
-      maliEl.className = 'stat ' + (m >= 0 ? 'profit' : 'loss');
-      document.getElementById('winrate').textContent = 'Win Rate: ' + stats.win_rate.toFixed(1) + '%';
-      document.getElementById('trades').textContent = 'Total Trades (Today): ' + stats.total_trades;
+      maliEl.textContent = (m >= 0 ? '+ ' : '- ') + formatAmount(m, curr);
+      maliEl.className = 'hero-amount ' + (m >= 0 ? 'profit' : 'loss');
+      document.getElementById('winrate').textContent = stats.win_rate.toFixed(1) + '%';
+      document.getElementById('trades').textContent = String(stats.total_trades);
+
       const mind = mindset(stats, goal);
-      const mindEl = document.getElementById('mindset');
-      mindEl.textContent = mind;
-      mindEl.className = (mind === 'LOCKED IN' || mind === 'DISCIPLINED' || mind === 'GRINDING' || mind === 'READY') ? 'profit' : (mind === 'RESET MODE' || mind === 'STAY COLD') ? 'loss' : '';
+      const badge = document.getElementById('mindsetBadge');
+      badge.textContent = mind;
+      badge.className = 'badge ' + ((mind === 'RESET MODE' || mind === 'STAY COLD') ? 'loss' : 'profit');
 
       document.getElementById('goalInput').value = goal > 0 ? goal : '';
       if (goal > 0) {
@@ -361,28 +1492,74 @@
       } else {
         document.getElementById('goalLabel').textContent = 'Set a daily goal.';
         document.getElementById('goalBar').style.width = '0%';
+        document.getElementById('goalBar').classList.remove('done');
       }
       updateCurrencyLabels();
+      renderRecentTrades();
+    }
+
+    function renderRecentTrades() {
+      const trades = getTrades().slice().reverse().slice(0, 4);
+      const wrap = document.getElementById('recentTrades');
+      wrap.innerHTML = '';
+      if (!trades.length) {
+        wrap.innerHTML = '<div class="empty-state">No trades yet. Use Quick log to add your first one.</div>';
+        return;
+      }
+      trades.forEach(function (t) {
+        var el = document.createElement('div');
+        el.className = 'trade-item';
+        el.innerHTML =
+          '<div class="trade-main">' +
+            '<div>' +
+              '<div class="trade-asset">' + t.asset + '</div>' +
+              '<div class="trade-meta">' + t.date + ' • ' + t.time + '</div>' +
+            '</div>' +
+            '<div class="trade-side">' +
+              '<strong class="' + (t.result === 'W' ? 'profit' : 'loss') + '">' + t.result + '</strong>' +
+              '<div class="trade-meta">' + t.amount + '</div>' +
+            '</div>' +
+          '</div>';
+        wrap.appendChild(el);
+      });
     }
 
     function renderCurrencyList() {
       var q = (document.getElementById('currencySearch').value || '').trim().toUpperCase();
-      var list = CURRENCIES.filter(function(p) { return !q || p[0].indexOf(q) >= 0 || p[1].toUpperCase().indexOf(q) >= 0; });
+      var list = CURRENCIES.filter(function (p) {
+        return !q || p[0].indexOf(q) >= 0 || p[1].toUpperCase().indexOf(q) >= 0;
+      });
       var wrap = document.getElementById('currencyListWrap');
       wrap.innerHTML = '';
-      list.forEach(function(p) {
+      list.forEach(function (p) {
         var code = p[0], name = p[1];
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'currency-item';
         btn.textContent = code + ' – ' + name;
-        btn.onclick = function() { setCurrency(code); document.getElementById('currentCurrencyLabel').textContent = code; updateCurrencyLabels(); renderDashboard(); };
+        btn.onclick = function () {
+          setCurrency(code);
+          updateCurrencyLabels();
+          renderDashboard();
+        };
         wrap.appendChild(btn);
       });
     }
 
+    function addTrade(amount, asset, result) {
+      const trades = getTrades();
+      trades.push({
+        date: todayStr(),
+        time: timeStr(),
+        amount: String(amount),
+        asset: asset || 'OTC',
+        result: result.toUpperCase().slice(0, 1)
+      });
+      saveTrades(trades);
+    }
+
     function removeTrade(trade) {
-      const trades = getTrades().filter(function(t) {
+      const trades = getTrades().filter(function (t) {
         return t.date !== trade.date || t.time !== trade.time || t.amount !== trade.amount || t.asset !== trade.asset || t.result !== trade.result;
       });
       saveTrades(trades);
@@ -391,7 +1568,7 @@
     }
 
     function clearAllData() {
-      if (!confirm('Clear ALL data (trades, goal, theme, currency, update URL)? This cannot be undone.')) return;
+      if (!confirm('Clear ALL local mobile data (trades, goal, theme, currency, update URL)? This cannot be undone.')) return;
       localStorage.removeItem(STORAGE_TRADES);
       localStorage.removeItem(STORAGE_GOAL);
       localStorage.removeItem(STORAGE_THEME);
@@ -399,43 +1576,70 @@
       localStorage.removeItem(STORAGE_UPDATE_CHECK_URL);
       applyTheme();
       updateCurrencyLabels();
-      document.getElementById('currentCurrencyLabel').textContent = 'ZAR';
       renderDashboard();
       renderHistory();
-      if (document.getElementById('historyTab').classList.contains('show')) renderHistory();
+      renderCurrencyList();
     }
 
     function renderHistory() {
-      const trades = getTrades();
-      const filter = document.querySelector('input[name="filter"]:checked').value;
+      const trades = getTrades().slice().reverse();
       const today = todayStr();
-      const list = filter === 'today' ? trades.filter(t => t.date === today) : trades;
-      const tbody = document.getElementById('historyBody');
-      tbody.innerHTML = '';
-      list.slice().reverse().forEach(t => {
-        const tr = document.createElement('tr');
-        const delBtn = document.createElement('button');
-        delBtn.type = 'button';
-        delBtn.className = 'btn-sm secondary btn-danger';
-        delBtn.textContent = 'Delete';
-        delBtn.onclick = function() { if (confirm('Remove this trade?')) removeTrade(t); };
-        tr.innerHTML = '<td>' + t.date + '</td><td>' + t.time + '</td><td>' + t.amount + '</td><td>' + t.asset + '</td><td class="' + (t.result === 'W' ? 'profit' : 'loss') + '">' + t.result + '</td><td></td>';
-        tr.querySelector('td:last-child').appendChild(delBtn);
-        tbody.appendChild(tr);
-      });
-    }
+      const list = historyFilter === 'today' ? trades.filter(function (t) { return t.date === today; }) : trades;
+      const wrap = document.getElementById('historyList');
+      wrap.innerHTML = '';
+      document.getElementById('filterAllBtn').classList.toggle('active', historyFilter === 'all');
+      document.getElementById('filterTodayBtn').classList.toggle('active', historyFilter === 'today');
 
-    function addTrade(amount, asset, result) {
-      const trades = getTrades();
-      trades.push({ date: todayStr(), time: timeStr(), amount: String(amount), asset: asset || 'OTC', result: result.toUpperCase().slice(0, 1) });
-      saveTrades(trades);
+      if (!list.length) {
+        wrap.innerHTML = '<div class="empty-state">No trades to show for this view.</div>';
+        return;
+      }
+
+      var groups = {};
+      list.forEach(function (t) {
+        if (!groups[t.date]) groups[t.date] = [];
+        groups[t.date].push(t);
+      });
+
+      Object.keys(groups).forEach(function (date) {
+        var group = document.createElement('div');
+        group.className = 'history-group';
+        group.innerHTML = '<h3 class="history-date">' + date + '</h3>';
+        groups[date].forEach(function (t) {
+          var item = document.createElement('div');
+          item.className = 'history-item';
+          item.innerHTML =
+            '<div class="history-main">' +
+              '<div>' +
+                '<div class="history-asset">' + t.asset + '</div>' +
+                '<div class="history-meta">' + t.time + ' • Amount ' + t.amount + '</div>' +
+              '</div>' +
+              '<div class="history-side">' +
+                '<strong class="' + (t.result === 'W' ? 'profit' : 'loss') + '">' + t.result + '</strong>' +
+              '</div>' +
+            '</div>';
+          var actions = document.createElement('div');
+          actions.className = 'history-actions';
+          var del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'btn danger';
+          del.textContent = 'Delete trade';
+          del.onclick = function () {
+            if (confirm('Remove this trade?')) removeTrade(t);
+          };
+          actions.appendChild(del);
+          item.appendChild(actions);
+          group.appendChild(item);
+        });
+        wrap.appendChild(group);
+      });
     }
 
     function exportCSV() {
       const trades = getTrades();
       const headers = 'date,time,amount,asset,result';
-      const rows = trades.map(t => [t.date, t.time, t.amount, t.asset, t.result].join(','));
-      const csv = [headers, ...rows].join('\n');
+      const rows = trades.map(function (t) { return [t.date, t.time, t.amount, t.asset, t.result].join(','); });
+      const csv = [headers].concat(rows).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -444,61 +1648,715 @@
       URL.revokeObjectURL(a.href);
     }
 
-    function showTab(tabId) {
-      document.getElementById('dashTab').classList.toggle('show', tabId === 'dashTab');
-      document.getElementById('historyTab').classList.toggle('show', tabId === 'historyTab');
-      document.getElementById('extrasTab').classList.toggle('show', tabId === 'extrasTab');
-      document.getElementById('tabDash').classList.toggle('active', tabId === 'dashTab');
-      document.getElementById('tabHistory').classList.toggle('active', tabId === 'historyTab');
-      document.getElementById('tabExtras').classList.toggle('active', tabId === 'extrasTab');
-      if (tabId === 'historyTab') renderHistory();
-      if (tabId === 'extrasTab') renderCurrencyList();
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(function (screen) {
+        screen.classList.toggle('show', screen.id === screenId);
+      });
+      document.querySelectorAll('.nav-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-screen') === screenId);
+      });
+      if (screenId === 'screenHistory') renderHistory();
+      if (screenId === 'screenMore') renderCurrencyList();
     }
-    document.getElementById('tabDash').onclick = function() { showTab('dashTab'); };
-    document.getElementById('tabHistory').onclick = function() { showTab('historyTab'); };
-    document.getElementById('tabExtras').onclick = function() { showTab('extrasTab'); };
 
-    document.getElementById('currencySearch').addEventListener('input', renderCurrencyList);
+    function syncResultButtons() {
+      document.getElementById('resultWin').classList.toggle('active', selectedResult === 'W');
+      document.getElementById('resultLoss').classList.toggle('active', selectedResult === 'L');
+    }
 
-    document.querySelectorAll('input[name="filter"]').forEach(el => el.addEventListener('change', renderHistory));
+    function getRelaySettings() {
+      try {
+        var raw = localStorage.getItem(STORAGE_RELAY_SETTINGS);
+        var s = raw ? JSON.parse(raw) : {};
+        return {
+          relay_url: (s.relay_url || '').trim(),
+          user_key: (s.user_key || '').trim(),
+          relay_token: (s.relay_token || '').trim(),
+          auto_sync: !!s.auto_sync
+        };
+      } catch (e) {
+        return { relay_url: '', user_key: '', relay_token: '', auto_sync: false };
+      }
+    }
 
-    document.getElementById('setGoalBtn').onclick = function() {
+    function saveRelaySettings(s) {
+      localStorage.setItem(STORAGE_RELAY_SETTINGS, JSON.stringify({
+        relay_url: (s.relay_url || '').trim(),
+        user_key: (s.user_key || '').trim(),
+        relay_token: (s.relay_token || '').trim(),
+        auto_sync: !!s.auto_sync
+      }));
+    }
+
+    function loadRelaySettingsUI() {
+      var s = getRelaySettings();
+      document.getElementById('relayUrlInput').value = s.relay_url;
+      document.getElementById('relayUserKeyInput').value = s.user_key;
+      document.getElementById('relayTokenInput').value = s.relay_token || '';
+      document.getElementById('relayAutoSync').checked = !!s.auto_sync;
+    }
+
+    function getRelayLastEventId() {
+      return localStorage.getItem(STORAGE_RELAY_LAST_EVENT_ID) || '';
+    }
+
+    function setRelayLastEventId(v) {
+      localStorage.setItem(STORAGE_RELAY_LAST_EVENT_ID, v || '');
+    }
+
+    function relayReady() {
+      var s = getRelaySettings();
+      return !!(s.relay_url && s.user_key);
+    }
+
+    function toTradeFromRelayEvent(ev) {
+      var ts = String(ev.closed_at || ev.timestamp_utc || '');
+      var date = ts.length >= 10 ? ts.slice(0, 10) : todayStr();
+      var time = ts.length >= 19 ? ts.slice(11, 19) : timeStr();
+      var amount = String(Math.abs(parseFloat(ev.amount || 0) || 0));
+      return {
+        date: date,
+        time: time,
+        amount: amount,
+        asset: (ev.asset || 'OTC'),
+        result: String(ev.result || 'W').toUpperCase().slice(0, 1),
+        payout: String(ev.payout || ''),
+        direction: String(ev.direction || ''),
+        duration_sec: String(ev.duration_sec || ''),
+        source: 'relay',
+        trade_id: String(ev.trade_id || '')
+      };
+    }
+
+    function currentRelayTradesToday() {
+      var today = todayStr();
+      var trades = getTrades();
+      return trades.filter(function (t) {
+        return (t.date === today) && String(t.source || '').toLowerCase() === 'relay';
+      });
+    }
+
+    function mergeRelayEvents(events) {
+      var trades = getTrades();
+      var existingIds = {};
+      trades.forEach(function (t) {
+        if (t.trade_id) existingIds[t.trade_id] = true;
+      });
+      var added = 0;
+      events.forEach(function (ev) {
+        var tid = String(ev.trade_id || '');
+        if (tid && existingIds[tid]) return;
+        var t = toTradeFromRelayEvent(ev);
+        if (t.trade_id) existingIds[t.trade_id] = true;
+        trades.push(t);
+        added++;
+      });
+      if (added) saveTrades(trades);
+      return added;
+    }
+
+    function relayBaseUrl(url) {
+      return String(url || '').replace(/\/+$/, '');
+    }
+
+    function syncRelayNow(showHint) {
+      var s = getRelaySettings();
+      if (!s.relay_url || !s.user_key) {
+        if (showHint) setHint('relayHint', 'Set relay URL and user key first.', 'loss');
+        trackingState.relayLastError = 'not configured';
+        updateTrackingDashboard();
+        return Promise.resolve(0);
+      }
+      var url = relayBaseUrl(s.relay_url) + '/relay/trades?user_key=' + encodeURIComponent(s.user_key);
+      var last = getRelayLastEventId();
+      if (last) url += '&since_id=' + encodeURIComponent(last);
+      var headers = { 'Accept': 'application/json' };
+      if (s.relay_token) headers['X-Relay-Token'] = s.relay_token;
+      return fetch(url, { headers: headers }).then(function (resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+      }).then(function (data) {
+        var events = data.events || [];
+        var added = mergeRelayEvents(events);
+        if (data.last_event_id) setRelayLastEventId(String(data.last_event_id));
+        trackingState.relayLastSyncAt = new Date().toLocaleTimeString();
+        trackingState.relayLastError = '';
+        trackingState.relayEventsFetched = events.length;
+        trackingState.relayTradesAdded = added;
+        if (events.length) {
+          if (added > 0) trackingState.lastTrade = (events[events.length - 1].asset || 'Trade');
+          appendTrackingActivity('Relay sync: ' + events.length + ' event(s), ' + added + ' new trade(s).');
+          renderDashboard();
+          if (historyFilter === 'today') renderHistory();
+        }
+        updateTrackingDashboard();
+        if (showHint) setHint('relayHint', 'Relay sync complete. New trades: ' + added, 'profit');
+        return added;
+      }).catch(function (err) {
+        trackingState.relayLastError = (err.message || String(err));
+        updateTrackingDashboard();
+        if (showHint) setHint('relayHint', 'Relay sync failed: ' + (err.message || String(err)), 'loss');
+        throw err;
+      });
+    }
+
+    function startRelayAutoSyncIfNeeded() {
+      if (relaySyncTimer) {
+        clearInterval(relaySyncTimer);
+        relaySyncTimer = null;
+      }
+      var s = getRelaySettings();
+      if (trackingState.running && s.auto_sync && s.relay_url && s.user_key) {
+        appendTrackingActivity('Relay auto-sync enabled.');
+        syncRelayNow(false).catch(function () {});
+        relaySyncTimer = setInterval(function () {
+          syncRelayNow(false).catch(function () {});
+        }, 8000);
+      } else if (trackingState.running && !(s.relay_url && s.user_key)) {
+        appendTrackingActivity('Relay not configured. Tracking stays local placeholder only.');
+      }
+    }
+
+    function getTrackingSettings() {
+      try {
+        var raw = localStorage.getItem(STORAGE_TRACKING_SETTINGS);
+        return raw ? JSON.parse(raw) : { polling_interval_sec: 5, automatically_save_detected_trades: true, sync_with_trade_journal: true };
+      } catch (e) {
+        return { polling_interval_sec: 5, automatically_save_detected_trades: true, sync_with_trade_journal: true };
+      }
+    }
+
+    function saveTrackingSettings(s) {
+      localStorage.setItem(STORAGE_TRACKING_SETTINGS, JSON.stringify(s));
+    }
+
+    function appendTrackingActivity(msg) {
+      trackingState.activityLog.push('[' + new Date().toLocaleTimeString() + '] ' + msg);
+      if (trackingState.activityLog.length > 50) trackingState.activityLog.shift();
+      document.getElementById('trackingActivityLog').textContent = trackingState.activityLog.join('\n');
+    }
+
+    function updateTrackingDashboard() {
+      var relayToday = currentRelayTradesToday();
+      document.getElementById('trackingTradesToday').textContent = String(relayToday.length);
+      if (relayToday.length) {
+        var lastRelay = relayToday[relayToday.length - 1];
+        document.getElementById('trackingLastTrade').textContent = (lastRelay.asset || 'Trade') + ' ' + (lastRelay.time || '');
+      } else {
+        document.getElementById('trackingLastTrade').textContent = trackingState.lastTrade || '—';
+      }
+      var ready = relayReady();
+      document.getElementById('trackingMethod').textContent = ready ? 'Cloud relay' : 'Placeholder';
+      var relayStatus = 'Not configured';
+      if (ready) {
+        relayStatus = trackingState.relayLastError
+          ? ('Error: ' + trackingState.relayLastError)
+          : (trackingState.relayLastSyncAt
+              ? ('Last sync ' + trackingState.relayLastSyncAt + ' | events ' + trackingState.relayEventsFetched + ' | new ' + trackingState.relayTradesAdded)
+              : 'Configured (no sync yet)');
+      }
+      document.getElementById('trackingRelayStatus').textContent = relayStatus;
+      document.getElementById('trackingStatusBadge').textContent = trackingState.status;
+      document.getElementById('trackingStatusBadge').className = 'badge ' + (trackingState.status === 'Monitoring' ? 'profit' : trackingState.status === 'Error' ? 'loss' : '');
+      refreshSummaryPills();
+    }
+
+    function buildRelayUserscript(relayUrl, userKey, relayToken) {
+      var endpoint = relayBaseUrl(relayUrl) + '/relay/trade-event';
+      return [
+        '// ==UserScript==',
+        '// @name         OTC Relay Trade Logger',
+        '// @namespace    local.otc-tracker',
+        '// @version      1.0.0',
+        '// @description  Sends Pocket Option closed trades to cloud relay.',
+        '// @match        *://*.pocketoption.com/*',
+        '// @connect      *',
+        '// @grant        GM_xmlhttpRequest',
+        '// ==/UserScript==',
+        '',
+        '(function () {',
+        "  'use strict';",
+        "  const RELAY_URL = '" + endpoint.replace(/'/g, "\\'") + "';",
+        "  const USER_KEY = '" + String(userKey || '').replace(/'/g, "\\'") + "';",
+        "  const RELAY_TOKEN = '" + String(relayToken || '').replace(/'/g, "\\'") + "';",
+        '  const seen = new Set();',
+        '  function normalizeMoneyText(s) {',
+        "    return String(s || '').replace(/[\\u2212\\u2013\\u2014]/g, '-').replace(/[^0-9.\\-]/g, '') || '0';",
+        '  }',
+        '  function send(payload) {',
+        "    var headers = { 'Content-Type': 'application/json' };",
+        "    if (RELAY_TOKEN) headers['X-Relay-Token'] = RELAY_TOKEN;",
+        "    GM_xmlhttpRequest({ method: 'POST', url: RELAY_URL, headers: headers, data: JSON.stringify(payload) });",
+        '  }',
+        '  function parseRow(el) {',
+        "    var assetA = el.querySelector('a');",
+        "    var asset = assetA ? assetA.textContent.trim() : 'OTC';",
+        "    var rows = el.querySelectorAll('.item-row'); if (rows.length < 2) return null;",
+        "    var t = rows[0].querySelectorAll('div'); var timeText = t.length > 1 ? t[1].textContent.trim() : '';",
+        "    var r2 = rows[1].querySelectorAll('div'); if (r2.length < 3) return null;",
+        "    var amount = parseFloat(normalizeMoneyText(r2[0].textContent || '0')) || 0;",
+        "    var payout = parseFloat(normalizeMoneyText(r2[1].textContent || '0')) || 0;",
+        "    var profit = parseFloat(normalizeMoneyText(r2[2].textContent || '0')) || 0;",
+        "    var up = el.querySelector('.fa-arrow-up'); var down = el.querySelector('.fa-arrow-down');",
+        "    var direction = up ? 'call' : (down ? 'put' : '');",
+        "    var result = profit > 0 ? 'W' : 'L';",
+        "    var now = new Date(); var y = now.getFullYear(); var m = String(now.getMonth()+1).padStart(2,'0'); var d = String(now.getDate()).padStart(2,'0');",
+        "    var p = timeText.split(':'); var hh = (p[0] || '00').padStart(2,'0'); var mm = (p[1] || '00').padStart(2,'0');",
+        "    var closedAt = y + '-' + m + '-' + d + 'T' + hh + ':' + mm + ':00.000Z';",
+        "    var tradeId = 'po|' + asset.replace(/\\s+/g,' ') + '|' + timeText + '|' + String(amount) + '|' + direction;",
+        "    return { user_key: USER_KEY, trade_id: tradeId, asset: asset, amount: amount, result: result, direction: direction, payout: payout, closed_at: closedAt, source: 'mobile-relay-helper' };",
+        '  }',
+        '  function scan() {',
+        "    document.querySelectorAll('.deals-list__item-short').forEach(function (el) {",
+        "      var fp = (el.innerText || '').replace(/\\s+/g, ' ').trim();",
+        '      if (!fp || seen.has(fp)) return;',
+        '      seen.add(fp);',
+        '      var payload = parseRow(el);',
+        '      if (payload) send(payload);',
+        '    });',
+        '  }',
+        "  new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });",
+        '  setInterval(scan, 2500);',
+        '  scan();',
+        '})();',
+        ''
+      ].join('\n');
+    }
+
+    function loadTrackingSettingsUI() {
+      var s = getTrackingSettings();
+      document.getElementById('trackingPollingInterval').value = s.polling_interval_sec || 5;
+      document.getElementById('trackingAutoSave').checked = s.automatically_save_detected_trades !== false;
+      document.getElementById('trackingSyncJournal').checked = s.sync_with_trade_journal !== false;
+    }
+
+    function getBotSettings() {
+      try {
+        var raw = localStorage.getItem(STORAGE_BOT_SETTINGS);
+        return raw ? JSON.parse(raw) : {
+          paper_trading: true,
+          asset: 'EURUSD_otc',
+          amount: 1,
+          interval_sec: 35,
+          direction_mode: 'alternate',
+          duration_sec: BOT_DURATION_SEC,
+          paper_win_rate_min: 0.68,
+          paper_win_rate_max: 0.8,
+          paper_payout_ratio: 0.82,
+          max_trades_per_session: 0,
+          max_trades_per_minute: 0,
+          relay_poll_sec: 5
+        };
+      } catch (e) {
+        return {
+          paper_trading: true,
+          asset: 'EURUSD_otc',
+          amount: 1,
+          interval_sec: 35,
+          direction_mode: 'alternate',
+          duration_sec: BOT_DURATION_SEC,
+          paper_win_rate_min: 0.68,
+          paper_win_rate_max: 0.8,
+          paper_payout_ratio: 0.82,
+          max_trades_per_session: 0,
+          max_trades_per_minute: 0,
+          relay_poll_sec: 5
+        };
+      }
+    }
+
+    function saveBotSettingsStore(s) {
+      localStorage.setItem(STORAGE_BOT_SETTINGS, JSON.stringify(s));
+    }
+
+    function appendBotActivity(msg) {
+      botState.activityLog.push('[' + new Date().toLocaleTimeString() + '] ' + msg);
+      if (botState.activityLog.length > 50) botState.activityLog.shift();
+      document.getElementById('botActivityLog').textContent = botState.activityLog.join('\n');
+    }
+
+    function botDirectionForTick(i, mode) {
+      if (mode === 'call') return 'call';
+      if (mode === 'put') return 'put';
+      if (mode === 'random') return Math.random() > 0.5 ? 'call' : 'put';
+      return i % 2 === 0 ? 'call' : 'put';
+    }
+
+    function getBotLastOrderId() {
+      return localStorage.getItem(STORAGE_BOT_LAST_ORDER_ID) || '';
+    }
+
+    function setBotLastOrderId(v) {
+      localStorage.setItem(STORAGE_BOT_LAST_ORDER_ID, v || '');
+    }
+
+    function postBotOrderToRelay(settings, tradeIndex) {
+      var rs = getRelaySettings();
+      if (!rs.relay_url || !rs.user_key) {
+        return Promise.reject(new Error('relay not configured'));
+      }
+      var direction = botDirectionForTick(tradeIndex, String(settings.direction_mode || 'alternate'));
+      var payload = {
+        user_key: rs.user_key,
+        asset: String(settings.asset || 'EURUSD_otc'),
+        amount: Math.max(0, parseFloat(settings.amount || 0) || 0),
+        direction: direction,
+        duration_sec: BOT_DURATION_SEC,
+        source: 'mobile-bot'
+      };
+      var headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+      if (rs.relay_token) headers['X-Relay-Token'] = rs.relay_token;
+      return fetch(relayBaseUrl(rs.relay_url) + '/relay/bot-order', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(payload)
+      }).then(function (resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+      }).then(function (data) {
+        if (!data.ok) throw new Error(data.error || 'order rejected');
+        return data.order_id || '';
+      });
+    }
+
+    function pollBotResults() {
+      var rs = getRelaySettings();
+      if (!rs.relay_url || !rs.user_key) return Promise.resolve();
+      var url = relayBaseUrl(rs.relay_url) + '/relay/bot-results?user_key=' + encodeURIComponent(rs.user_key);
+      var headers = { 'Accept': 'application/json' };
+      if (rs.relay_token) headers['X-Relay-Token'] = rs.relay_token;
+      return fetch(url, { headers: headers }).then(function (resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+      }).then(function (data) {
+        var results = data.results || [];
+        if (!results.length) return;
+        var last = results[results.length - 1];
+        botState.lastTrade = (last.status || 'executed') + ' ' + (last.order_id || '');
+      }).catch(function () {});
+    }
+
+    function startMobileBotLoop() {
+      if (botTimer) {
+        clearInterval(botTimer);
+        botTimer = null;
+      }
+      if (!botState.running) return;
+      var settings = getBotSettings();
+      var intervalMs = Math.max(5000, (parseFloat(settings.interval_sec) || 30) * 1000);
+      var tick = 0;
+      botTimer = setInterval(function () {
+        if (!botState.running) return;
+        tick += 1;
+        var maxSession = parseInt(settings.max_trades_per_session, 10) || 0;
+        if (maxSession > 0 && botState.tradesToday >= maxSession) {
+          botState.status = 'Stopped';
+          botState.running = false;
+          document.getElementById('botToggle').checked = false;
+          appendBotActivity('Stopped: max trades per session reached.');
+          updateBotDashboard();
+          startMobileBotLoop();
+          return;
+        }
+        if (settings.paper_trading !== false) {
+          botState.tradesToday += 1;
+          var amount = Math.abs(parseFloat(settings.amount || 0) || 0);
+          var wrMin = parseFloat(settings.paper_win_rate_min);
+          var wrMax = parseFloat(settings.paper_win_rate_max);
+          if (isNaN(wrMin)) wrMin = 0.68;
+          if (isNaN(wrMax)) wrMax = 0.8;
+          if (wrMax < wrMin) wrMax = wrMin;
+          var pay = parseFloat(settings.paper_payout_ratio);
+          if (isNaN(pay) || pay < 0) pay = 0.82;
+          var thr = wrMin + Math.random() * (wrMax - wrMin);
+          var win = Math.random() < thr;
+          var pnl = win ? amount * pay : -amount;
+          botState.sessionPnl += pnl;
+          botState.lastTrade = settings.asset + ' ' + botDirectionForTick(tick, settings.direction_mode) + ' (paper)';
+          appendBotActivity('Paper trade simulated: ' + botState.lastTrade);
+          updateBotDashboard();
+          return;
+        }
+        postBotOrderToRelay(settings, tick).then(function (orderId) {
+          botState.tradesToday += 1;
+          setBotLastOrderId(orderId);
+          botState.lastTrade = 'Queued order ' + orderId;
+          appendBotActivity('Relay order queued: ' + orderId);
+          updateBotDashboard();
+          return pollBotResults();
+        }).catch(function (err) {
+          botState.status = 'Error';
+          appendBotActivity('Relay order failed: ' + (err.message || String(err)));
+          updateBotDashboard();
+        });
+      }, intervalMs);
+    }
+
+    function updateBotDashboard() {
+      document.getElementById('botTradesToday').textContent = String(botState.tradesToday);
+      document.getElementById('botSessionPnl').textContent = botState.sessionPnl.toFixed(2);
+      document.getElementById('botLastTrade').textContent = botState.lastTrade || '—';
+      var rs = getRelaySettings();
+      var bridge = (rs.relay_url && rs.user_key) ? 'Relay ready' : 'Not configured';
+      document.getElementById('botBridgeStatus').textContent = bridge;
+      document.getElementById('botStatusBadge').textContent = botState.status;
+      document.getElementById('botStatusBadge').className = 'badge ' + (botState.status === 'Running' ? 'profit' : botState.status === 'Error' ? 'loss' : '');
+      refreshSummaryPills();
+    }
+
+    function loadBotSettingsUI() {
+      var s = getBotSettings();
+      document.getElementById('botPaperTrading').checked = s.paper_trading !== false;
+      document.getElementById('botAsset').value = s.asset || 'EURUSD_otc';
+      document.getElementById('botAmount').value = s.amount || 1;
+      document.getElementById('botIntervalSec').value = s.interval_sec || 35;
+      document.getElementById('botDirectionMode').value = s.direction_mode || 'alternate';
+      document.getElementById('botPaperWinMin').value = s.paper_win_rate_min != null ? s.paper_win_rate_min : 0.68;
+      document.getElementById('botPaperWinMax').value = s.paper_win_rate_max != null ? s.paper_win_rate_max : 0.8;
+      document.getElementById('botMaxSession').value = s.max_trades_per_session || 0;
+      document.getElementById('botMaxMinute').value = s.max_trades_per_minute || 0;
+      document.getElementById('botRelayPollSec').value = s.relay_poll_sec || 5;
+    }
+
+    function refreshSummaryPills() {
+      document.getElementById('trackingSummaryPill').textContent = 'Tracking: ' + (trackingState.status || '—');
+      document.getElementById('botSummaryPill').textContent = 'Bot: ' + (botState.status || '—');
+      var relayOk = relayReady() && !trackingState.relayLastError;
+      document.getElementById('connectionSummaryPill').textContent = 'Connection: ' + (relayOk ? 'Relay OK' : ((trackingState.running || botState.running) ? 'Local only' : '—'));
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        showScreen(btn.getAttribute('data-screen'));
+      });
+    });
+
+    document.getElementById('resultWin').onclick = function () {
+      selectedResult = 'W';
+      syncResultButtons();
+    };
+    document.getElementById('resultLoss').onclick = function () {
+      selectedResult = 'L';
+      syncResultButtons();
+    };
+
+    document.getElementById('filterAllBtn').onclick = function () {
+      historyFilter = 'all';
+      localStorage.setItem(STORAGE_HISTORY_FILTER, historyFilter);
+      renderHistory();
+    };
+    document.getElementById('filterTodayBtn').onclick = function () {
+      historyFilter = 'today';
+      localStorage.setItem(STORAGE_HISTORY_FILTER, historyFilter);
+      renderHistory();
+    };
+
+    document.getElementById('setGoalBtn').onclick = function () {
       const v = parseFloat(document.getElementById('goalInput').value) || 0;
       setGoal(v);
       renderDashboard();
     };
 
-    document.getElementById('logBtn').onclick = function() {
+    document.getElementById('logBtn').onclick = function () {
       const amount = parseFloat(document.getElementById('amountInput').value) || 0;
       const asset = document.getElementById('assetInput').value.trim() || 'OTC';
-      const result = document.querySelector('input[name="result"]:checked').value;
-      addTrade(amount, asset, result);
+      addTrade(amount, asset, selectedResult);
       const fb = document.getElementById('feedback');
-      fb.textContent = feedback(result === 'W');
-      fb.className = 'feedback ' + (result === 'W' ? 'profit' : 'loss');
+      fb.textContent = feedback(selectedResult === 'W');
+      fb.className = 'feedback ' + (selectedResult === 'W' ? 'profit' : 'loss');
       document.getElementById('amountInput').value = '';
       renderDashboard();
+      if (historyFilter === 'today') renderHistory();
     };
 
-    document.getElementById('exportBtn').onclick = exportCSV;
+    document.getElementById('trackingToggle').onchange = function () {
+      trackingState.running = this.checked;
+      trackingState.status = this.checked ? 'Monitoring' : 'Stopped';
+      if (this.checked) appendTrackingActivity('Monitoring started (placeholder — no detection method).');
+      else appendTrackingActivity('Tracking stopped.');
+      updateTrackingDashboard();
+      startRelayAutoSyncIfNeeded();
+    };
 
-    document.getElementById('themeBtn').onclick = function() {
+    document.getElementById('saveTrackingSettingsBtn').onclick = function () {
+      saveTrackingSettings({
+        polling_interval_sec: parseFloat(document.getElementById('trackingPollingInterval').value) || 5,
+        automatically_save_detected_trades: document.getElementById('trackingAutoSave').checked,
+        sync_with_trade_journal: document.getElementById('trackingSyncJournal').checked
+      });
+      setHint('trackingSaveHint', 'Tracking settings saved.', 'profit');
+    };
+
+    document.getElementById('saveRelaySettingsBtn').onclick = function () {
+      saveRelaySettings({
+        relay_url: document.getElementById('relayUrlInput').value,
+        user_key: document.getElementById('relayUserKeyInput').value,
+        relay_token: document.getElementById('relayTokenInput').value,
+        auto_sync: document.getElementById('relayAutoSync').checked
+      });
+      setHint('relayHint', 'Relay settings saved.', 'profit');
+      startRelayAutoSyncIfNeeded();
+    };
+
+    document.getElementById('testRelayBtn').onclick = function () {
+      var s = getRelaySettings();
+      if (!s.relay_url || !s.user_key) {
+        setHint('relayHint', 'Set relay URL and user key first.', 'loss');
+        return;
+      }
+      var url = relayBaseUrl(s.relay_url) + '/relay/health';
+      var headers = { 'Accept': 'application/json' };
+      if (s.relay_token) headers['X-Relay-Token'] = s.relay_token;
+      fetch(url, { headers: headers }).then(function (resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+      }).then(function () {
+        setHint('relayHint', 'Relay is reachable.', 'profit');
+      }).catch(function (err) {
+        setHint('relayHint', 'Relay test failed: ' + (err.message || String(err)), 'loss');
+      });
+    };
+
+    document.getElementById('syncRelayNowBtn').onclick = function () {
+      syncRelayNow(true).catch(function () {});
+    };
+
+    document.getElementById('downloadRelayScriptBtn').onclick = function () {
+      var s = getRelaySettings();
+      if (!s.relay_url || !s.user_key) {
+        setHint('relayHint', 'Set relay URL and user key before downloading the userscript.', 'loss');
+        return;
+      }
+      var script = buildRelayUserscript(s.relay_url, s.user_key, s.relay_token);
+      var blob = new Blob([script], { type: 'text/javascript' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'OTC-Relay-Trade-Logger.user.js';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      setHint('relayHint', 'Userscript downloaded. Import it into Tampermonkey on your mobile trading browser.', 'profit');
+    };
+
+    document.getElementById('botToggle').onchange = function () {
+      botState.running = this.checked;
+      botState.status = this.checked ? 'Running' : 'Stopped';
+      if (this.checked) appendBotActivity('Mobile bot started.');
+      else appendBotActivity('Bot stopped.');
+      startMobileBotLoop();
+      updateBotDashboard();
+    };
+
+    document.getElementById('botSettingsEasyBtn').onclick = function () {
+      botState.settingsTab = 'easy';
+      document.getElementById('botSettingsEasyBtn').classList.add('active');
+      document.getElementById('botSettingsAdvBtn').classList.remove('active');
+      document.getElementById('botSettingsEasyPanel').classList.remove('hidden');
+      document.getElementById('botSettingsAdvancedPanel').classList.add('hidden');
+    };
+    document.getElementById('botSettingsAdvBtn').onclick = function () {
+      botState.settingsTab = 'advanced';
+      document.getElementById('botSettingsAdvBtn').classList.add('active');
+      document.getElementById('botSettingsEasyBtn').classList.remove('active');
+      document.getElementById('botSettingsAdvancedPanel').classList.remove('hidden');
+      document.getElementById('botSettingsEasyPanel').classList.add('hidden');
+    };
+
+    document.getElementById('saveBotSettingsBtn').onclick = function () {
+      saveBotSettingsStore({
+        paper_trading: document.getElementById('botPaperTrading').checked,
+        asset: (document.getElementById('botAsset').value || 'EURUSD_otc').trim() || 'EURUSD_otc',
+        amount: parseFloat(document.getElementById('botAmount').value) || 1,
+        interval_sec: parseFloat(document.getElementById('botIntervalSec').value) || 35,
+        direction_mode: document.getElementById('botDirectionMode').value || 'alternate',
+        duration_sec: BOT_DURATION_SEC,
+        paper_win_rate_min: parseFloat(document.getElementById('botPaperWinMin').value) || 0.68,
+        paper_win_rate_max: parseFloat(document.getElementById('botPaperWinMax').value) || 0.8,
+        paper_payout_ratio: 0.82,
+        max_trades_per_session: parseInt(document.getElementById('botMaxSession').value, 10) || 0,
+        max_trades_per_minute: parseInt(document.getElementById('botMaxMinute').value, 10) || 0,
+        relay_poll_sec: parseInt(document.getElementById('botRelayPollSec').value, 10) || 5
+      });
+      setHint('botSettingsHint', 'Bot settings applied. Start uses this saved profile.', 'profit');
+      appendBotActivity('Bot settings applied.');
+      if (botState.running) startMobileBotLoop();
+    };
+
+    function buildBotExecutorUserscript(relayUrl, userKey, relayToken) {
+      var base = relayBaseUrl(relayUrl);
+      var ub = base.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var uk = String(userKey || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var tok = String(relayToken || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return [
+        '// ==UserScript==',
+        '// @name         OTC Relay Bot Executor',
+        '// @namespace    local.otc-tracker',
+        '// @version      1.1.0',
+        '// @description  Pulls bot orders from your relay; use public HTTPS relay (not 127.0.0.1).',
+        '// @match        *://*.pocketoption.com/*',
+        '// @connect      *',
+        '// @grant        GM_xmlhttpRequest',
+        '// ==/UserScript==',
+        '(function(){',
+        "  'use strict';",
+        "  var RELAY_BASE_URL = '" + ub + "';",
+        "  var USER_KEY = '" + uk + "';",
+        "  var RELAY_TOKEN = '" + tok + "';",
+        "  var BASE = String(RELAY_BASE_URL).replace(/\\/+$/, '');",
+        "  var ORDERS_URL = BASE + '/relay/bot-orders?user_key=' + encodeURIComponent(USER_KEY);",
+        "  var RESULT_URL = BASE + '/relay/bot-order-result';",
+        "  var lastOrderId = '';",
+        "  var busy = {};",
+        "  function req(method, url, data, cb){ var h = Object.assign({'Accept':'application/json'}, data ? {'Content-Type':'application/json'} : {}); if(RELAY_TOKEN) h['X-Relay-Token']=RELAY_TOKEN; GM_xmlhttpRequest({method:method,url:url,headers:h,data:data||undefined,onload:function(r){ try{cb(null, JSON.parse(r.responseText||'{}'));}catch(e){cb(e,null);} },onerror:function(){cb(new Error('network'),null);}}); }",
+        "  function postResult(orderId, status, message){ req('POST',RESULT_URL,JSON.stringify({user_key:USER_KEY,order_id:orderId,status:status,message:(message||'').slice(0,300),source:'relay-bot-executor'}),function(){}); }",
+        "  function visible(el){ return el && el.offsetParent !== null; }",
+        "  function setInputAmount(amount){ var cand = document.querySelectorAll('input[type=number],input[inputmode=decimal],input[type=text]'); var i,el,ph,name,j; for(i=0;i<cand.length;i++){ el=cand[i]; if(!visible(el)) continue; ph=(el.getAttribute('placeholder')||'').toLowerCase(); name=(el.getAttribute('name')||'').toLowerCase(); if(ph.indexOf('sum')>=0||ph.indexOf('amount')>=0||ph.indexOf('invest')>=0||name.indexOf('amount')>=0||name.indexOf('invest')>=0){ el.focus(); el.value=String(amount); el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); return true;} } for(j=0;j<cand.length;j++){ el=cand[j]; if(visible(el)){ el.focus(); el.value=String(amount); el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); return true;} } return false; }",
+        "  function clickDirection(direction){ var put=String(direction||'').toLowerCase()==='put'; var sel=put? '[class*=\"put\" i] .fa-arrow-down,.fa-arrow-down,button[class*=\"put\" i],[data-direction=\"put\"]':'[class*=\"call\" i] .fa-arrow-up,.fa-arrow-up,button[class*=\"call\" i],[data-direction=\"call\"]'; var el=document.querySelector(sel); if(el&&visible(el)){ el.click(); return true;} return false; }",
+        "  function clickBuy(){ var nodes=document.querySelectorAll('button,a[role=button],div[role=button]'); var i,b,t,j,cls; for(i=0;i<nodes.length;i++){ b=nodes[i]; if(!visible(b)) continue; t=(b.textContent||'').replace(/\\s+/g,' ').trim(); if(/^buy\\b/i.test(t)||/^вложить\\b/i.test(t)||/invest/i.test(t)){ b.click(); return true;} } for(j=0;j<nodes.length;j++){ b=nodes[j]; if(!visible(b)) continue; cls=String(b.className||''); if(/purchase|deal-submit|place-deal|btn-buy|button-buy/i.test(cls)){ b.click(); return true;} } return false; }",
+        "  function executeOrder(o){ var id=String(o.order_id||''); if(!id||busy[id]) return; busy[id]=1; var amt=parseFloat(o.amount)||0; var dir=String(o.direction||'call'); if(!setInputAmount(amt)){ postResult(id,'failed','amount input not found'); delete busy[id]; return;} setTimeout(function(){ if(!clickDirection(dir)){ postResult(id,'failed','direction control not found'); delete busy[id]; return;} setTimeout(function(){ if(!clickBuy()){ postResult(id,'failed','buy button not found'); delete busy[id]; return;} postResult(id,'executed','click sequence ok'); setTimeout(function(){ delete busy[id]; },5000); },450); },450); }",
+        "  function pollOrders(){ var url=ORDERS_URL+(lastOrderId?'&since_id='+encodeURIComponent(lastOrderId):''); req('GET',url,null,function(err,data){ if(err||!data||!data.ok) return; var orders=data.orders||[]; if(data.last_order_id) lastOrderId=String(data.last_order_id); orders.forEach(function(o){ executeOrder(o); }); }); }",
+        "  setInterval(pollOrders,2500); pollOrders();",
+        '})();'
+      ].join('\n');
+    }
+
+    document.getElementById('downloadBotExecScriptBtn').onclick = function () {
+      var rs = getRelaySettings();
+      if (!rs.relay_url || !rs.user_key) {
+        setHint('botSettingsHint', 'Configure relay in More tab first (URL + user key).', 'loss');
+        return;
+      }
+      var script = buildBotExecutorUserscript(rs.relay_url, rs.user_key, rs.relay_token);
+      var blob = new Blob([script], { type: 'text/javascript' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'OTC-Relay-Bot-Executor.user.js';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      setHint('botSettingsHint', 'Executor userscript downloaded.', 'profit');
+    };
+
+    document.getElementById('currencySearch').addEventListener('input', renderCurrencyList);
+    document.getElementById('exportBtn').onclick = exportCSV;
+    document.getElementById('wipeDataBtn').onclick = clearAllData;
+    document.getElementById('clearAllBtn').onclick = clearAllData;
+
+    document.getElementById('themeBtn').onclick = function () {
+      var next = getTheme() === 'dark' ? 'light' : 'dark';
+      setThemeStore(next);
+      applyTheme();
+    };
+    document.getElementById('themeToggleMore').onclick = function () {
       var next = getTheme() === 'dark' ? 'light' : 'dark';
       setThemeStore(next);
       applyTheme();
     };
 
-    document.getElementById('clearAllBtn').onclick = clearAllData;
-
     document.getElementById('appVersionLabel').textContent = APP_VERSION;
     document.getElementById('updateCheckUrlInput').value = getUpdateCheckUrl();
 
-    document.getElementById('saveUpdateUrlBtn').onclick = function() {
+    document.getElementById('saveUpdateUrlBtn').onclick = function () {
       setUpdateCheckUrl(document.getElementById('updateCheckUrlInput').value);
-      var el = document.getElementById('updateCheckResult');
-      el.textContent = 'URL saved.';
-      el.style.display = 'block';
-      el.className = 'panel-hint profit';
+      setHint('updateCheckResult', 'URL saved.', 'profit');
     };
 
     function exportSyncFile() {
@@ -515,14 +2373,12 @@
       a.download = 'otc_tracker_sync.json';
       a.click();
       URL.revokeObjectURL(a.href);
-      var el = document.getElementById('syncResultHint');
-      el.textContent = 'Sync file downloaded. Save it to Google Drive or OneDrive, then on PC use Download from sync file.';
-      el.style.display = 'block';
-      el.className = 'panel-hint profit';
+      setHint('syncResultHint', 'Sync file downloaded. Save it to Drive or OneDrive, then import it on desktop or another phone.', 'profit');
     }
+
     function importSyncFile(file) {
       var reader = new FileReader();
-      reader.onload = function() {
+      reader.onload = function () {
         try {
           var data = JSON.parse(reader.result);
           var trades = data.trades || [];
@@ -534,67 +2390,67 @@
           updateCurrencyLabels();
           renderDashboard();
           renderHistory();
-          var el = document.getElementById('syncResultHint');
-          el.textContent = 'Data imported. Last updated: ' + (data.updated_at || 'unknown');
-          el.style.display = 'block';
-          el.className = 'panel-hint profit';
+          renderCurrencyList();
+          setHint('syncResultHint', 'Data imported. Last updated: ' + (data.updated_at || 'unknown'), 'profit');
         } catch (e) {
-          document.getElementById('syncResultHint').textContent = 'Invalid sync file: ' + (e.message || e);
-          document.getElementById('syncResultHint').className = 'panel-hint loss';
-          document.getElementById('syncResultHint').style.display = 'block';
+          setHint('syncResultHint', 'Invalid sync file: ' + (e.message || e), 'loss');
         }
       };
       reader.readAsText(file);
     }
+
     document.getElementById('exportSyncFileBtn').onclick = exportSyncFile;
-    document.getElementById('importSyncFileBtn').onclick = function() { document.getElementById('importSyncFileInput').click(); };
-    document.getElementById('importSyncFileInput').onchange = function() {
+    document.getElementById('importSyncFileBtn').onclick = function () {
+      document.getElementById('importSyncFileInput').click();
+    };
+    document.getElementById('importSyncFileInput').onchange = function () {
       var file = this.files && this.files[0];
       if (file) importSyncFile(file);
       this.value = '';
     };
 
-    document.getElementById('checkUpdateBtn').onclick = function() {
+    document.getElementById('checkUpdateBtn').onclick = function () {
       var url = (document.getElementById('updateCheckUrlInput').value || getUpdateCheckUrl()).trim();
-      var resultEl = document.getElementById('updateCheckResult');
-      resultEl.style.display = 'block';
       if (!url) {
-        resultEl.textContent = 'Enter the URL to your version.json, then tap Check for update.';
-        resultEl.className = 'panel-hint';
+        setHint('updateCheckResult', 'Enter the URL to your version.json, then tap Check.', '');
         return;
       }
-      resultEl.textContent = 'Checking...';
-      resultEl.className = 'panel-hint';
-      fetch(url, { headers: { 'Accept': 'application/json' } }).then(function(resp) {
+      setHint('updateCheckResult', 'Checking...', '');
+      fetch(url, { headers: { 'Accept': 'application/json' } }).then(function (resp) {
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         return resp.json();
-      }).then(function(data) {
+      }).then(function (data) {
         var remoteVersion = (data.version || '').trim();
         var downloadUrl = (data.url || '').trim();
         var notes = (data.notes || '').trim();
         if (!remoteVersion) {
-          resultEl.textContent = 'version.json did not contain a "version" field.';
-          resultEl.className = 'panel-hint loss';
+          setHint('updateCheckResult', 'version.json did not contain a version field.', 'loss');
           return;
         }
         if (versionNewer(remoteVersion, APP_VERSION)) {
-          resultEl.innerHTML = 'Update available: v' + remoteVersion + (notes ? '<br>' + notes : '') + (downloadUrl ? '<br><a href="' + downloadUrl + '" target="_blank" rel="noopener" style="color:var(--profit)">Open download</a>' : '');
-          resultEl.className = 'panel-hint profit';
+          var text = 'Update available: v' + remoteVersion + (notes ? ' — ' + notes : '') + (downloadUrl ? ' — Open download link in browser.' : '');
+          setHint('updateCheckResult', text, 'profit');
         } else {
-          resultEl.textContent = "You're on the latest version (v" + APP_VERSION + ").";
-          resultEl.className = 'panel-hint';
+          setHint('updateCheckResult', "You're on the latest version (v" + APP_VERSION + ').', '');
         }
-      }).catch(function(err) {
-        resultEl.textContent = 'Could not check: ' + (err.message || String(err));
-        resultEl.className = 'panel-hint loss';
+      }).catch(function (err) {
+        setHint('updateCheckResult', 'Could not check: ' + (err.message || String(err)), 'loss');
       });
     };
 
+    loadTrackingSettingsUI();
+    loadRelaySettingsUI();
+    loadBotSettingsUI();
+    updateTrackingDashboard();
+    updateBotDashboard();
+    syncResultButtons();
     applyTheme();
-    document.getElementById('currentCurrencyLabel').textContent = getCurrency();
     updateCurrencyLabels();
     renderCurrencyList();
     renderDashboard();
+    renderHistory();
+    showScreen('screenHome');
+    startRelayAutoSyncIfNeeded();
   </script>
 </body>
 </html>
