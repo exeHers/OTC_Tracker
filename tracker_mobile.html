@@ -795,6 +795,67 @@
       border-color: color-mix(in srgb, var(--loss) 28%, transparent);
     }
 
+    .script-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 18px 14px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+    }
+
+    .script-modal.show {
+      display: flex;
+    }
+
+    .script-sheet {
+      width: 100%;
+      max-width: 560px;
+      max-height: min(82vh, 760px);
+      overflow: auto;
+      border-radius: 22px;
+      border: 1px solid var(--border-strong);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .script-sheet-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .script-sheet-note {
+      margin: 8px 0 0;
+      color: var(--text-dim);
+      font-size: 0.83rem;
+      line-height: 1.5;
+    }
+
+    .script-editor {
+      width: 100%;
+      min-height: 260px;
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-soft);
+      color: var(--text);
+      resize: vertical;
+      font: 13px/1.45 Consolas, "Courier New", monospace;
+    }
+
+    .setup-links {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
     .bottom-nav {
       position: fixed;
       left: 50%;
@@ -1047,11 +1108,12 @@
             </div>
           </div>
           <div class="hint-box">
-            1. Configure Cloud Relay in More tab (URL, user key, optional token).<br>
-            2. Download and install relay userscript in Tampermonkey.<br>
-            3. Keep Pocket Option deals list visible in browser.<br>
-            4. Turn Auto Track ON and run Sync now to verify connection.<br>
-            5. Only newly closed trades are saved while tracking is ON.
+            1. The APK is only the tracker. Pocket Option must run in a separate browser tab or on your PC.<br>
+            2. In More tab, enter your relay URL, user key, and token if you use one. Save settings first.<br>
+            3. Tap Get relay userscript. In the APK it opens a copy window; in a browser it downloads a `.user.js` file.<br>
+            4. Install that script in Tampermonkey or another userscript manager on the browser that opens Pocket Option.<br>
+            5. Open Pocket Option, keep the closed deals list visible, then turn Auto Track ON in the APK and tap Sync now.<br>
+            6. Only trades that close after the script is installed and tracking is on will be collected.
           </div>
         </div>
       </section>
@@ -1230,13 +1292,40 @@
             <button type="button" id="syncRelayNowBtn" class="btn primary">Sync now</button>
           </div>
           <div class="inline-actions">
-            <button type="button" id="downloadRelayScriptBtn" class="btn secondary">Download relay userscript</button>
+            <button type="button" id="downloadRelayScriptBtn" class="btn secondary">Get relay userscript</button>
+            <button type="button" id="copyRelayScriptDirectBtn" class="btn secondary">Copy relay script</button>
           </div>
           <div class="hint-box">
-            Use the downloaded userscript in Tampermonkey on the browser that runs Pocket Option.
-            It posts closed trades to your relay with your user key.
+            Clear version:
+            <br>1. This APK cannot install Tampermonkey for you.
+            <br>2. The script must be installed in the browser where you actually open Pocket Option.
+            <br>3. If you use the APK button on Android, copy the generated script and paste it into a new userscript in your browser's userscript manager.
+            <br>4. If you use the web version, the same button downloads the `.user.js` file directly.
           </div>
           <div id="relayHint" class="result-hint"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Extras: mobile browser setup</h2>
+              <p class="card-subtitle">Install a browser + userscript manager, then paste the relay script.</p>
+            </div>
+          </div>
+          <div class="hint-box">
+            1. Install one supported browser below.<br>
+            2. Install Tampermonkey (or another userscript manager) in that browser.<br>
+            3. Open Pocket Option in that same browser.<br>
+            4. Tap <strong>Copy relay script</strong> above, create a new userscript, paste, and save.<br>
+            5. Keep the deals history visible while trading, then use Auto Track in this app.
+          </div>
+          <div class="setup-links">
+            <button type="button" id="openTampermonkeyLinkBtn" class="btn secondary">Open Tampermonkey website</button>
+            <button type="button" id="openKiwiLinkBtn" class="btn secondary">Open Kiwi Browser (Android)</button>
+            <button type="button" id="openFirefoxLinkBtn" class="btn secondary">Open Firefox (Android)</button>
+            <button type="button" id="openYandexLinkBtn" class="btn secondary">Open Yandex Browser (Android)</button>
+          </div>
+          <div id="extrasHint" class="result-hint"></div>
         </div>
 
         <div class="card">
@@ -1318,6 +1407,22 @@
     <button type="button" class="nav-btn" data-screen="screenBot"><strong>B</strong><span>Bot</span></button>
     <button type="button" class="nav-btn" data-screen="screenMore"><strong>M</strong><span>More</span></button>
   </nav>
+
+  <div id="scriptModal" class="script-modal" aria-hidden="true">
+    <div class="script-sheet">
+      <div class="card-head">
+        <div>
+          <h3 id="scriptModalTitle" class="script-sheet-title">Userscript</h3>
+          <p id="scriptModalNote" class="script-sheet-note"></p>
+        </div>
+      </div>
+      <textarea id="scriptModalText" class="script-editor" spellcheck="false"></textarea>
+      <div class="inline-actions">
+        <button type="button" id="copyScriptBtn" class="btn primary">Copy script</button>
+        <button type="button" id="closeScriptBtn" class="btn secondary">Close</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const STORAGE_TRADES = 'otc_trades';
@@ -1448,6 +1553,86 @@
       if (!el) return;
       el.textContent = text;
       el.className = 'result-hint show' + (type === 'profit' ? ' profit' : type === 'loss' ? ' loss' : '');
+    }
+
+    function isNativeApp() {
+      return !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+    }
+
+    function fallbackCopyText(text) {
+      return new Promise(function (resolve, reject) {
+        try {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', 'readonly');
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          var ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          if (!ok) throw new Error('copy failed');
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+      }
+      return fallbackCopyText(text);
+    }
+
+    function openScriptModal(title, note, script, hintId) {
+      var modal = document.getElementById('scriptModal');
+      document.getElementById('scriptModalTitle').textContent = title;
+      document.getElementById('scriptModalNote').textContent = note;
+      document.getElementById('scriptModalText').value = script;
+      modal.setAttribute('data-hint-id', hintId || '');
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeScriptModal() {
+      var modal = document.getElementById('scriptModal');
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function saveOrShowTextFile(filename, text, hintId, successText) {
+      if (isNativeApp()) {
+        openScriptModal(
+          filename,
+          'APK mode: this app cannot auto-install Tampermonkey. Copy this script, then create a new userscript in the browser where Pocket Option runs and paste it there.',
+          text,
+          hintId
+        );
+        setHint(hintId, 'APK mode: script opened below. Copy it and paste it into your userscript manager.', 'profit');
+        return;
+      }
+      try {
+        var blob = new Blob([text], { type: 'text/javascript' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        setHint(hintId, successText, 'profit');
+      } catch (err) {
+        openScriptModal(
+          filename,
+          'Download failed here, so the script is shown directly. Copy it and paste it into a new userscript.',
+          text,
+          hintId
+        );
+        setHint(hintId, 'Direct download failed, so the script was opened for manual copy.', 'loss');
+      }
     }
 
     function applyTheme() {
@@ -1863,64 +2048,51 @@
 
     function buildRelayUserscript(relayUrl, userKey, relayToken) {
       var endpoint = relayBaseUrl(relayUrl) + '/relay/trade-event';
-      return [
-        '// ==UserScript==',
-        '// @name         OTC Relay Trade Logger',
-        '// @namespace    local.otc-tracker',
-        '// @version      1.0.0',
-        '// @description  Sends Pocket Option closed trades to cloud relay.',
-        '// @match        *://*.pocketoption.com/*',
-        '// @connect      *',
-        '// @grant        GM_xmlhttpRequest',
-        '// ==/UserScript==',
-        '',
-        '(function () {',
-        "  'use strict';",
-        "  const RELAY_URL = '" + endpoint.replace(/'/g, "\\'") + "';",
-        "  const USER_KEY = '" + String(userKey || '').replace(/'/g, "\\'") + "';",
-        "  const RELAY_TOKEN = '" + String(relayToken || '').replace(/'/g, "\\'") + "';",
-        '  const seen = new Set();',
-        '  function normalizeMoneyText(s) {',
-        "    return String(s || '').replace(/[\\u2212\\u2013\\u2014]/g, '-').replace(/[^0-9.\\-]/g, '') || '0';",
-        '  }',
-        '  function send(payload) {',
-        "    var headers = { 'Content-Type': 'application/json' };",
-        "    if (RELAY_TOKEN) headers['X-Relay-Token'] = RELAY_TOKEN;",
-        "    GM_xmlhttpRequest({ method: 'POST', url: RELAY_URL, headers: headers, data: JSON.stringify(payload) });",
-        '  }',
-        '  function parseRow(el) {',
-        "    var assetA = el.querySelector('a');",
-        "    var asset = assetA ? assetA.textContent.trim() : 'OTC';",
-        "    var rows = el.querySelectorAll('.item-row'); if (rows.length < 2) return null;",
-        "    var t = rows[0].querySelectorAll('div'); var timeText = t.length > 1 ? t[1].textContent.trim() : '';",
-        "    var r2 = rows[1].querySelectorAll('div'); if (r2.length < 3) return null;",
-        "    var amount = parseFloat(normalizeMoneyText(r2[0].textContent || '0')) || 0;",
-        "    var payout = parseFloat(normalizeMoneyText(r2[1].textContent || '0')) || 0;",
-        "    var profit = parseFloat(normalizeMoneyText(r2[2].textContent || '0')) || 0;",
-        "    var up = el.querySelector('.fa-arrow-up'); var down = el.querySelector('.fa-arrow-down');",
-        "    var direction = up ? 'call' : (down ? 'put' : '');",
-        "    var result = profit > 0 ? 'W' : 'L';",
-        "    var now = new Date(); var y = now.getFullYear(); var m = String(now.getMonth()+1).padStart(2,'0'); var d = String(now.getDate()).padStart(2,'0');",
-        "    var p = timeText.split(':'); var hh = (p[0] || '00').padStart(2,'0'); var mm = (p[1] || '00').padStart(2,'0');",
-        "    var closedAt = y + '-' + m + '-' + d + 'T' + hh + ':' + mm + ':00.000Z';",
-        "    var tradeId = 'po|' + asset.replace(/\\s+/g,' ') + '|' + timeText + '|' + String(amount) + '|' + direction;",
-        "    return { user_key: USER_KEY, trade_id: tradeId, asset: asset, amount: amount, result: result, direction: direction, payout: payout, closed_at: closedAt, source: 'mobile-relay-helper' };",
-        '  }',
-        '  function scan() {',
-        "    document.querySelectorAll('.deals-list__item-short').forEach(function (el) {",
-        "      var fp = (el.innerText || '').replace(/\\s+/g, ' ').trim();",
-        '      if (!fp || seen.has(fp)) return;',
-        '      seen.add(fp);',
-        '      var payload = parseRow(el);',
-        '      if (payload) send(payload);',
-        '    });',
-        '  }',
-        "  new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });",
-        '  setInterval(scan, 2500);',
-        '  scan();',
-        '})();',
-        ''
-      ].join('\n');
+      var endpointJson = JSON.stringify(String(endpoint || ''));
+      var userKeyJson = JSON.stringify(String(userKey || ''));
+      var tokenJson = JSON.stringify(String(relayToken || ''));
+      return (
+        "// ==UserScript==\n" +
+        "// @name         OTC Relay Trade Logger\n" +
+        "// @namespace    local.otc-tracker\n" +
+        "// @version      1.0.2\n" +
+        "// @description  Sends Pocket Option closed trades to cloud relay.\n" +
+        "// @match        *://*.pocketoption.com/*\n" +
+        "// @connect      *\n" +
+        "// @grant        GM_xmlhttpRequest\n" +
+        "// ==/UserScript==\n\n" +
+        "(function(){\n" +
+        "  'use strict';\n" +
+        "  const RELAY_URL = " + endpointJson + ";\n" +
+        "  const USER_KEY = " + userKeyJson + ";\n" +
+        "  const RELAY_TOKEN = " + tokenJson + ";\n" +
+        "  const seen = new Set();\n" +
+        "  function normalizeMoneyText(s){ return String(s||'').replace(/[\\u2212\\u2013\\u2014]/g,'-').replace(/[^0-9.\\-]/g,'') || '0'; }\n" +
+        "  function send(payload){ var headers={'Content-Type':'application/json'}; if(RELAY_TOKEN) headers['X-Relay-Token']=RELAY_TOKEN; GM_xmlhttpRequest({method:'POST',url:RELAY_URL,headers:headers,data:JSON.stringify(payload)}); }\n" +
+        "  function getDealRows(){ return document.querySelectorAll('.deals-list__item-short,.deals-list__item,[class*=\"deals-list__item\"],[class*=\"dealsList__item\"],[class*=\"deal-item\"]'); }\n" +
+        "  function parseRow(el){\n" +
+        "    var txt=(el.innerText||'').replace(/\\s+/g,' ').trim(); if(!txt) return null;\n" +
+        "    var assetA=el.querySelector('a'); var asset=assetA?assetA.textContent.trim():'';\n" +
+        "    if(!asset){ var mAsset=txt.match(/\\b[A-Z]{3,6}(?:[_\\-/][A-Z]{2,6})?\\b/); asset=mAsset?mAsset[0]:'OTC'; }\n" +
+        "    var rows=el.querySelectorAll('.item-row'); var timeText='';\n" +
+        "    if(rows.length>0){ var t=rows[0].querySelectorAll('div'); timeText=t.length>1?(t[1].textContent||'').trim():''; }\n" +
+        "    if(!timeText){ var mTime=txt.match(/\\b([01]?\\d|2[0-3]):([0-5]\\d)(?::([0-5]\\d))?\\b/); timeText=mTime?mTime[0]:''; }\n" +
+        "    var amount=0,payout=0,profit=0;\n" +
+        "    if(rows.length>=2){ var r2=rows[1].querySelectorAll('div'); if(r2.length>=3){ amount=parseFloat(normalizeMoneyText(r2[0].textContent||'0'))||0; payout=parseFloat(normalizeMoneyText(r2[1].textContent||'0'))||0; profit=parseFloat(normalizeMoneyText(r2[2].textContent||'0'))||0; } }\n" +
+        "    if(!amount && !payout && !profit){ var nums=(txt.match(/[-−+]?\\s*\\d+(?:[.,]\\d+)?/g)||[]).map(function(n){ var c=n.replace(/\\s+/g,'').replace(',', '.').replace('−','-'); return parseFloat(c); }).filter(function(n){ return Number.isFinite(n); }); if(nums.length>=3){ amount=Math.abs(nums[nums.length-3]); payout=Math.abs(nums[nums.length-2]); profit=nums[nums.length-1]; } else if(nums.length>=1){ amount=Math.abs(nums[0])||0; } }\n" +
+        "    var up=el.querySelector('.fa-arrow-up,[class*=\"arrow-up\"],[data-direction=\"call\"]'); var down=el.querySelector('.fa-arrow-down,[class*=\"arrow-down\"],[data-direction=\"put\"]');\n" +
+        "    var direction=up?'call':(down?'put':''); if(!direction){ if(/\\b(call|up|buy)\\b/i.test(txt)) direction='call'; if(/\\b(put|down|sell)\\b/i.test(txt)) direction='put'; }\n" +
+        "    var result=profit>0?'W':'L'; var now=new Date(); var y=now.getFullYear(); var m=String(now.getMonth()+1).padStart(2,'0'); var d=String(now.getDate()).padStart(2,'0');\n" +
+        "    var p=timeText.split(':'); var hh=(p[0]||String(now.getHours())).padStart(2,'0'); var mm=(p[1]||String(now.getMinutes())).padStart(2,'0'); var ss=(p[2]||'00').padStart(2,'0');\n" +
+        "    var closedAt=y+'-'+m+'-'+d+'T'+hh+':'+mm+':'+ss+'.000Z'; var tradeId='po|'+asset.replace(/\\s+/g,' ')+'|'+timeText+'|'+String(amount)+'|'+direction;\n" +
+        "    return { user_key: USER_KEY, trade_id: tradeId, asset: asset, amount: amount, result: result, direction: direction, payout: payout, closed_at: closedAt, source: 'mobile-relay-helper' };\n" +
+        "  }\n" +
+        "  function scan(){ getDealRows().forEach(function(el){ var fp=(el.innerText||'').replace(/\\s+/g,' ').trim(); if(!fp||seen.has(fp)) return; var payload=parseRow(el); if(!payload) return; seen.add(fp); send(payload); }); }\n" +
+        "  new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});\n" +
+        "  setInterval(scan,2500);\n" +
+        "  scan();\n" +
+        "})();\n"
+      );
     }
 
     function loadTrackingSettingsUI() {
@@ -2228,14 +2400,42 @@
         return;
       }
       var script = buildRelayUserscript(s.relay_url, s.user_key, s.relay_token);
-      var blob = new Blob([script], { type: 'text/javascript' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'OTC-Relay-Trade-Logger.user.js';
-      a.click();
-      URL.revokeObjectURL(a.href);
-      setHint('relayHint', 'Userscript downloaded. Import it into Tampermonkey on your mobile trading browser.', 'profit');
+      saveOrShowTextFile(
+        'OTC-Relay-Trade-Logger.user.js',
+        script,
+        'relayHint',
+        'Userscript downloaded. Import it into Tampermonkey in the browser where Pocket Option runs.'
+      );
     };
+
+    document.getElementById('copyRelayScriptDirectBtn').onclick = function () {
+      var s = getRelaySettings();
+      if (!s.relay_url || !s.user_key) {
+        setHint('relayHint', 'Set relay URL and user key first, then copy script.', 'loss');
+        return;
+      }
+      var script = buildRelayUserscript(s.relay_url, s.user_key, s.relay_token);
+      copyText(script).then(function () {
+        setHint('relayHint', 'Relay script copied. In Tampermonkey: create new script, paste, save.', 'profit');
+      }).catch(function () {
+        openScriptModal(
+          'OTC-Relay-Trade-Logger.user.js',
+          'Copy failed directly. Use this text box: select all, then copy and paste into a new userscript.',
+          script,
+          'relayHint'
+        );
+        setHint('relayHint', 'Script opened for manual copy.', 'loss');
+      });
+    };
+
+    function openExternalLink(url) {
+      try {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
 
     document.getElementById('botToggle').onchange = function () {
       botState.running = this.checked;
@@ -2326,13 +2526,56 @@
         return;
       }
       var script = buildBotExecutorUserscript(rs.relay_url, rs.user_key, rs.relay_token);
-      var blob = new Blob([script], { type: 'text/javascript' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'OTC-Relay-Bot-Executor.user.js';
-      a.click();
-      URL.revokeObjectURL(a.href);
-      setHint('botSettingsHint', 'Executor userscript downloaded.', 'profit');
+      saveOrShowTextFile(
+        'OTC-Relay-Bot-Executor.user.js',
+        script,
+        'botSettingsHint',
+        'Executor userscript downloaded.'
+      );
+    };
+
+    document.getElementById('copyScriptBtn').onclick = function () {
+      var text = document.getElementById('scriptModalText').value || '';
+      var hintId = document.getElementById('scriptModal').getAttribute('data-hint-id') || '';
+      copyText(text).then(function () {
+        if (hintId) setHint(hintId, 'Script copied. Open your userscript manager, create a new script, paste, and save.', 'profit');
+      }).catch(function () {
+        if (hintId) setHint(hintId, 'Copy failed here. Long-press the text, select all, then copy manually.', 'loss');
+      });
+    };
+
+    document.getElementById('closeScriptBtn').onclick = closeScriptModal;
+    document.getElementById('scriptModal').onclick = function (ev) {
+      if (ev.target === this) closeScriptModal();
+    };
+
+    document.getElementById('openTampermonkeyLinkBtn').onclick = function () {
+      if (openExternalLink('https://www.tampermonkey.net/')) {
+        setHint('extrasHint', 'Opened Tampermonkey website.', 'profit');
+      } else {
+        setHint('extrasHint', 'Could not open link here. Copy: https://www.tampermonkey.net/', 'loss');
+      }
+    };
+    document.getElementById('openKiwiLinkBtn').onclick = function () {
+      if (openExternalLink('https://play.google.com/store/apps/details?id=com.kiwibrowser.browser')) {
+        setHint('extrasHint', 'Opened Kiwi Browser page.', 'profit');
+      } else {
+        setHint('extrasHint', 'Could not open Kiwi link here.', 'loss');
+      }
+    };
+    document.getElementById('openFirefoxLinkBtn').onclick = function () {
+      if (openExternalLink('https://play.google.com/store/apps/details?id=org.mozilla.firefox')) {
+        setHint('extrasHint', 'Opened Firefox page.', 'profit');
+      } else {
+        setHint('extrasHint', 'Could not open Firefox link here.', 'loss');
+      }
+    };
+    document.getElementById('openYandexLinkBtn').onclick = function () {
+      if (openExternalLink('https://play.google.com/store/apps/details?id=com.yandex.browser')) {
+        setHint('extrasHint', 'Opened Yandex Browser page.', 'profit');
+      } else {
+        setHint('extrasHint', 'Could not open Yandex link here.', 'loss');
+      }
     };
 
     document.getElementById('currencySearch').addEventListener('input', renderCurrencyList);

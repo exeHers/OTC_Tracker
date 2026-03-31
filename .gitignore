@@ -11,6 +11,9 @@ venv/
 # User data (keep your trades and settings local)
 config.json
 trades.csv
+trade_collection_state.json
+automation_config.json
+relay-data/
 
 # Node
 node_modules/
@@ -20,6 +23,10 @@ yarn-error.log*
 # Android build (android/ has its own .gitignore; these are for root)
 *.apk
 *.aab
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
 
 # IDE / OS
 .idea/

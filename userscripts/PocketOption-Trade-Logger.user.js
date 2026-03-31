@@ -34,6 +34,12 @@
     return t.slice(0, 500);
   }
 
+  function getDealRows() {
+    return document.querySelectorAll(
+      '.deals-list__item-short, .deals-list__item, [class*="deals-list__item"], [class*="dealsList__item"], [class*="deal-item"]'
+    );
+  }
+
   function httpJson(method, url, body, cb) {
     const headers = body ? { 'Content-Type': 'application/json' } : {};
     if (CLOUD_RELAY_TOKEN && url.indexOf('/relay/') !== -1) {
@@ -60,7 +66,7 @@
   function syncBaselineForNewSession() {
     emitted.clear();
     pending.clear();
-    document.querySelectorAll('.deals-list__item-short').forEach(function (el) {
+    getDealRows().forEach(function (el) {
       const fp = rowFingerprint(el);
       if (fp) emitted.add(fp);
     });
@@ -89,25 +95,59 @@
   }
 
   function parseDealRow(el) {
+    const txt = (el.innerText || '').replace(/\s+/g, ' ').trim();
+    if (!txt) return null;
+
     const assetA = el.querySelector('a');
-    const asset = assetA ? assetA.textContent.trim() : '';
+    let asset = assetA ? assetA.textContent.trim() : '';
+    if (!asset) {
+      const mAsset = txt.match(/\b[A-Z]{3,6}(?:[_\-/][A-Z]{2,6})?\b/);
+      asset = mAsset ? mAsset[0] : 'OTC';
+    }
+
+    let timeText = '';
     const rows = el.querySelectorAll('.item-row');
-    if (rows.length < 2) return null;
-    const timeCell = rows[0].querySelectorAll('div');
-    const timeText = timeCell.length > 1 ? timeCell[1].textContent.trim() : '';
-    const r2 = rows[1].querySelectorAll('div');
-    if (r2.length < 3) return null;
-    const stakeText = r2[0].textContent || '';
-    const payoutText = r2[1].textContent || '';
-    const profitText = r2[2].textContent || '';
+    if (rows.length > 0) {
+      const timeCell = rows[0].querySelectorAll('div');
+      timeText = timeCell.length > 1 ? (timeCell[1].textContent || '').trim() : '';
+    }
+    if (!timeText) {
+      const mTime = txt.match(/\b([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?\b/);
+      timeText = mTime ? mTime[0] : '';
+    }
 
-    const stake = parseFloat(normalizeMoneyText(stakeText)) || 0;
-    const payout = parseFloat(normalizeMoneyText(payoutText)) || 0;
-    const profit = parseFloat(normalizeMoneyText(profitText)) || 0;
+    let stake = 0;
+    let payout = 0;
+    let profit = 0;
+    if (rows.length >= 2) {
+      const r2 = rows[1].querySelectorAll('div');
+      if (r2.length >= 3) {
+        stake = parseFloat(normalizeMoneyText(r2[0].textContent || '0')) || 0;
+        payout = parseFloat(normalizeMoneyText(r2[1].textContent || '0')) || 0;
+        profit = parseFloat(normalizeMoneyText(r2[2].textContent || '0')) || 0;
+      }
+    }
+    if (!stake && !payout && !profit) {
+      const nums = (txt.match(/[-−+]?\s*\d+(?:[.,]\d+)?/g) || []).map(function (n) {
+        const cleaned = n.replace(/\s+/g, '').replace(',', '.').replace('−', '-');
+        return parseFloat(cleaned);
+      }).filter(function (n) { return Number.isFinite(n); });
+      if (nums.length >= 3) {
+        stake = Math.abs(nums[nums.length - 3]);
+        payout = Math.abs(nums[nums.length - 2]);
+        profit = nums[nums.length - 1];
+      } else if (nums.length >= 1) {
+        stake = Math.abs(nums[0]) || 0;
+      }
+    }
 
-    const up = el.querySelector('.fa-arrow-up');
-    const down = el.querySelector('.fa-arrow-down');
-    const direction = up ? 'call' : down ? 'put' : '';
+    const up = el.querySelector('.fa-arrow-up,[class*="arrow-up"],[data-direction="call"]');
+    const down = el.querySelector('.fa-arrow-down,[class*="arrow-down"],[data-direction="put"]');
+    let direction = up ? 'call' : down ? 'put' : '';
+    if (!direction) {
+      if (/\b(call|up|buy)\b/i.test(txt)) direction = 'call';
+      if (/\b(put|down|sell)\b/i.test(txt)) direction = 'put';
+    }
 
     const result = profit > 0 ? 'W' : 'L';
 
@@ -116,9 +156,10 @@
     const m = String(now.getMonth() + 1).padStart(2, '0');
     const d = String(now.getDate()).padStart(2, '0');
     const parts = timeText.split(':');
-    const hh = (parts[0] || '00').padStart(2, '0');
-    const mm = (parts[1] || '00').padStart(2, '0');
-    const closed_at = y + '-' + m + '-' + d + 'T' + hh + ':' + mm + ':00.000Z';
+    const hh = (parts[0] || String(now.getHours())).padStart(2, '0');
+    const mm = (parts[1] || String(now.getMinutes())).padStart(2, '0');
+    const ss = (parts[2] || '00').padStart(2, '0');
+    const closed_at = y + '-' + m + '-' + d + 'T' + hh + ':' + mm + ':' + ss + '.000Z';
 
     const trade_id =
       'po|' +
@@ -185,7 +226,7 @@
   function scanList() {
     checkStatus(function (st) {
       if (!st.enabled) return;
-      document.querySelectorAll('.deals-list__item-short').forEach(function (el) {
+      getDealRows().forEach(function (el) {
         processRow(el);
       });
     });

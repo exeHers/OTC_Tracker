@@ -4,7 +4,8 @@
   "description": "OTC 5-Second Trading Tracker — Underground Cyberpunk (mobile app)",
   "scripts": {
     "build": "echo No build step - www/ is static",
-    "cap:sync": "npx cap sync",
+    "cap:sync": "npx cap sync && node scripts/fix-capacitor-flatdir.js",
+    "cap:sync:android": "npx cap sync android && node scripts/fix-capacitor-flatdir.js",
     "cap:open:android": "npx cap open android"
   },
   "capacitor": {
